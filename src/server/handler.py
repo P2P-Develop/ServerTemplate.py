@@ -71,8 +71,16 @@ class Handler(BaseHTTPRequestHandler):
                                .format(e.with_traceback(tb)))
 
     def handleRequest(self, path, params):
+        p = path.path.replace("/", ".")
+        if p.endswith("."):
+            p = p[:-1]
+
         try:
-            handler = import_module("src.server.handler_root" + path.path.replace("/", "."))
+            handler = import_module("src.server.handler_root" + p)
             handler.handle(self, path, params)
-        except ModuleNotFoundError:
-            result.qe(self, result.Cause.EP_NOTFOUND)
+        except ModuleNotFoundError and AttributeError:
+            try:
+                handler = import_module("src.server.handler_root" + p + "._")
+                handler.handle(self, path, params)
+            except ModuleNotFoundError:
+                result.qe(self, result.Cause.EP_NOTFOUND)
