@@ -1,6 +1,6 @@
 from http.server import BaseHTTPRequestHandler
 import os
-from src.utils import result
+from utils import result
 import urllib.parse as parse
 import sys
 from importlib import import_module
@@ -76,11 +76,11 @@ class Handler(BaseHTTPRequestHandler):
             p = p[:-1]
 
         try:
-            handler = import_module("src.server.handler_root" + p)
+            handler = import_module("server.handler_root" + p)
             handler.handle(self, path, params)
         except ModuleNotFoundError and AttributeError:
             try:
-                handler = import_module("src.server.handler_root" + p + "._")
+                handler = import_module("server.handler_root" + p + "._")
                 handler.handle(self, path, params)
             except ModuleNotFoundError:
                 result.qe(self, result.Cause.EP_NOTFOUND)

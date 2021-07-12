@@ -1,4 +1,4 @@
-from src.command.command import CommandEntry
+from command.command import CommandEntry
 
 
 class CommandExit(CommandEntry):
