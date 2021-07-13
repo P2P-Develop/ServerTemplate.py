@@ -47,40 +47,52 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if "Authorization" not in self.headers:
             result.qe(self, result.Cause.AUTH_REQUIRED)
+
             return
+
         try:
             path = parse.urlparse(self.path)
             params = parse.parse_qs(path.query)
 
             auth = self.headers["Authorization"].split(" ")
-            if len(auth) is not 2:
+
+            if len(auth) != 2:
                 result.qe(self, result.Cause.AUTH_REQUIRED)
+
                 return
+
             if str(auth[0]).lower() != "token":
                 result.qe(self, result.Cause.AUTH_REQUIRED)
+
                 return
+
             if not self.token.validate(auth[1]):
                 result.qe(self, result.Cause.AUTH_REQUIRED)
+
                 return
 
             self.handleRequest(path, params)
         except Exception as e:
             tb = sys.exc_info()[2]
+
             self.logger.severe("instance",
                                "An error has occurred while processing request from client: {0}"
                                .format(e.with_traceback(tb)))
 
     def handleRequest(self, path, params):
         p = path.path.replace("/", ".")
+
         if p.endswith("."):
             p = p[:-1]
 
         try:
             handler = import_module("server.handler_root" + p)
+
             handler.handle(self, path, params)
         except ModuleNotFoundError and AttributeError:
             try:
                 handler = import_module("server.handler_root" + p + "._")
+
                 handler.handle(self, path, params)
             except ModuleNotFoundError:
                 result.qe(self, result.Cause.EP_NOTFOUND)
