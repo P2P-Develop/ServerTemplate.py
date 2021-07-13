@@ -42,13 +42,11 @@ class Main:
             shutil.copy("resources/config.yml", "config.yml")
             self.log.severe("main", "Please edit config.yml file first.")
             self.die(1)
-            return
 
         config = loadConfig("config.yml")
         self.config = config
         if not self.validateConfig(config):
             self.die(1)
-            return
 
         self.log.info("main", "Connecting...")
 
