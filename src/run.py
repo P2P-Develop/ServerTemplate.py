@@ -1,3 +1,4 @@
+from threading import Thread
 import yaml
 from os import path
 import shutil
@@ -13,7 +14,6 @@ def loadConfig(fileName):
 
 
 class Main:
-
     def __init__(self):
         self.log = Logger(name="main", dir="logs")
         self.cmd = CommandExecutor(self)
@@ -60,6 +60,7 @@ class Main:
 
         server.bind(int(config["system"]["bind"]["port"]), self, self.log, token)
         self.log.info("main", "Ready")
+
         while True:
             self.console()
 
