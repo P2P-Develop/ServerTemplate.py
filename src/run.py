@@ -20,8 +20,9 @@ class Main:
         self.config = None
 
     def validateConfig(self, config):
-        if not config["edit"]:
+        if not config["system"]["bind"]["port"]:
             self.log.severe("main", "Please edit config.yml file first.")
+            self.log.hint("main", "You can uncomment system.bind.port .")
             return False
         clen = 0
         if clen != 0:
