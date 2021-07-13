@@ -23,3 +23,7 @@ You need to setup ServerTemplate.py.
     -edit: false
     +edit: true
     ```
+
+# Caution
+
++ Do not uncomment `system.bind.port` in config.yml when distributing using this template.
