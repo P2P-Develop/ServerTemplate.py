@@ -11,7 +11,7 @@ class CommandExit(CommandEntry):
     def exec(self, args):
         self.logger.info("main", "Shutdown...")
 
-        if args.length > 0:
+        if len(args) > 0:
             self.instance.die(args[0])
         else:
             self.instance.die(0)

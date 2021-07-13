@@ -6,7 +6,6 @@ import tarfile
 class Type:
     INFO = "INFO"
     WARNING = "WARN"
-    SEVERE = "SEVERE"
     ERROR = "ERROR"
     FATAL = "FATAL"
     HINT = "HINT"
@@ -62,9 +61,6 @@ class Logger:
 
     def warn(self, name, message):
         self.log(self.format(Type.WARNING, name) + message)
-
-    def severe(self, name, message):
-        self.log(self.format(Type.SEVERE, name) + message)
 
     def error(self, name, message):
         self.log(self.format(Type.ERROR, name) + message)
