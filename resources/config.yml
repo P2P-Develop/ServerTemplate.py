@@ -1,10 +1,7 @@
-# このファイルを編集した場合はtrueをセットしてください。
-edit: false
-
-# システムの設定
+# System settings
 system:
-  #バインド
+  # Server listening
   bind:
-    # ポート
-    # このファイルを編集後、コメントアウトを解除してください。
+    # Server listening port.
+    # REQUIRED
     #port: 25500
