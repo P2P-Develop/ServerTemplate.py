@@ -75,7 +75,7 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             tb = sys.exc_info()[2]
 
-            self.logger.severe("instance",
+            self.logger.error("instance",
                                "An error has occurred while processing request from client: {0}"
                                .format(e.with_traceback(tb)))
 
