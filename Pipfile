@@ -9,3 +9,9 @@ pyyaml = "*"
 [dev-packages]
 autopep8 = "*"
 flake8 = "*"
+
+[scripts]
+start = "python src/run.py"
+format = "autopep8 -ivr ."
+lint = "flake8 --show-source ."
+
