@@ -42,7 +42,8 @@ class Handler(BaseHTTPRequestHandler):
         super().__init__(request, client_address, server)
 
     def log_message(self, format, *args):
-        self.logger.info("server", self.address_string() + " -> " + format % args)
+        self.logger.info("server", self.address_string() +
+                         " -> " + format % args)
 
     def do_GET(self):
         if "Authorization" not in self.headers:
@@ -76,8 +77,8 @@ class Handler(BaseHTTPRequestHandler):
             tb = sys.exc_info()[2]
 
             self.logger.error("instance",
-                               "An error has occurred while processing request from client: {0}"
-                               .format(e.with_traceback(tb)))
+                              "An error has occurred while processing request from client: {0}"
+                              .format(e.with_traceback(tb)))
 
     def handleRequest(self, path, params):
         p = path.path.replace("/", ".")

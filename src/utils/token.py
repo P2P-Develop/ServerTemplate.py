@@ -30,8 +30,10 @@ class Token:
         if path.exists(self.file):
             if self.load():
                 return self.token
-        token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
-        hash = hashlib.md5(token.encode("utf-8") + self.salt.encode()).hexdigest()
+        token = ''.join(random.choices(
+            string.ascii_letters + string.digits, k=32))
+        hash = hashlib.md5(token.encode("utf-8") +
+                           self.salt.encode()).hexdigest()
         self.save(hash)
         self.token = hash
         return token
