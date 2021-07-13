@@ -21,8 +21,8 @@ class Main:
 
     def validateConfig(self, config):
         if not config["system"]["bind"]["port"]:
-            self.log.severe("main", "Please edit config.yml file first.")
-            self.log.hint("main", "You can uncomment system.bind.port .")
+            self.log.severe("config", "system.bind.port not found.")
+            self.log.hint("config", "Add or uncomment system.bind.port and try again.")
             return False
         clen = 0
         if clen != 0:
@@ -40,7 +40,8 @@ class Main:
         self.log.info("main", "Starting...")
         if not path.exists("config.yml"):
             shutil.copy("resources/config.yml", "config.yml")
-            self.log.severe("main", "Please edit config.yml file first.")
+            self.log.info("config", "Copied resources/config.yml to ./config.yml .")
+            self.log.severe("config", "Please edit config.yml first.")
             self.die(1)
 
         config = loadConfig("config.yml")
