@@ -1,7 +1,10 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 if [ -e requirements.txt ]; then
   pip3 install -req requirements.txt
+elif [ -e Pipfile ]; then
+  pipenv install
 fi
 
 python src/run.py
+

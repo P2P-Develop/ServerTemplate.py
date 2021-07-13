@@ -1,8 +1,9 @@
 from http.server import BaseHTTPRequestHandler
 import os
-from src.utils import result
+from utils import result
 import urllib.parse as parse
 import sys
+from importlib import import_module
 
 
 def grand(sv, path, data):
@@ -70,4 +71,16 @@ class Handler(BaseHTTPRequestHandler):
                                .format(e.with_traceback(tb)))
 
     def handleRequest(self, path, params):
-        pass
+        p = path.path.replace("/", ".")
+        if p.endswith("."):
+            p = p[:-1]
+
+        try:
+            handler = import_module("server.handler_root" + p)
+            handler.handle(self, path, params)
+        except ModuleNotFoundError and AttributeError:
+            try:
+                handler = import_module("server.handler_root" + p + "._")
+                handler.handle(self, path, params)
+            except ModuleNotFoundError:
+                result.qe(self, result.Cause.EP_NOTFOUND)
