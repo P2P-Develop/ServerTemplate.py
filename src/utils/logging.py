@@ -9,6 +9,7 @@ class Type:
     SEVERE = "SEVERE"
     ERROR = "ERROR"
     FATAL = "FATAL"
+    HINT = "HINT"
 
 
 class Logger:
@@ -70,6 +71,9 @@ class Logger:
 
     def fatal(self, name, message):
         self.log(self.format(Type.FATAL, name) + message)
+
+    def hint(self, name, message):
+        self.log(self.format(Type.HINT, name) + message)
 
     def input(self, context):
         self.log("> " + context)
