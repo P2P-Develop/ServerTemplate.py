@@ -7,7 +7,7 @@
 
 ### Requirements
 
--   PyYAML
+- PyYAML
 
 ### Using ServerTemplate.py
 
@@ -18,12 +18,8 @@ You need to setup ServerTemplate.py.
     ```bash
     $ bin/start
     ```
-3. Edit config.yml:
-    ```diff
-    -edit: false
-    +edit: true
-    ```
+3. Edit `config.yml`. -> [Configuration](#Configuration)
 
-# Caution
+## Configuration
 
-+ Do not uncomment `system.bind.port` in config.yml when distributing using this template.
+- `system.bind.port` (REQUIRED) - Server listening port.
