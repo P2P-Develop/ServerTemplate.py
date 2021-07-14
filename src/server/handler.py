@@ -3,6 +3,7 @@ import os
 from utils import result
 import urllib.parse as parse
 import sys
+import threading
 from importlib import import_module
 
 
@@ -41,8 +42,14 @@ class Handler(BaseHTTPRequestHandler):
         self.config = self.instance.config
         super().__init__(request, client_address, server)
 
+    def parse_thread_name(self, name):
+        name = str.strip(name, "ThreadPoolExecutor-")
+        splittext = str.split(name, "_")
+
+        return f"thread-{splittext[0]}-{splittext[1]}"
+
     def log_message(self, format, *args):
-        self.logger.info("server", self.address_string() +
+        self.logger.info(self.parse_thread_name(threading.current_thread().getName()), self.address_string() +
                          " -> " + format % args)
 
     def do_GET(self):
@@ -76,9 +83,9 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             tb = sys.exc_info()[2]
 
-            self.logger.error("instance",
-                              "An error has occurred while processing request from client: {0}"
-                              .format(e.with_traceback(tb)))
+            self.logger.error(self.parse_thread_name(threading.current_thread().getName()),
+                               "An error has occurred while processing request from client: {0}"
+                               .format(e.with_traceback(tb)))
 
     def handleRequest(self, path, params):
         p = path.path.replace("/", ".")

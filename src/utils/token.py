@@ -1,17 +1,17 @@
-from os import path
-import random
+import os
+import secrets
 import string
 import hashlib
 
 
 class Token:
-    def __init__(self, file, salt="P2P-Develop"):
+    def __init__(self, file, salt=b"P2P-Develop"):
         self.file = file
         self.token = None
         self.salt = salt
 
     def load(self):
-        if not path.exists(self.file):
+        if not os.path.exists(self.file):
             return False
         with open(self.file, "rb") as r:
             self.token = r.read().decode("utf-8")
@@ -27,16 +27,17 @@ class Token:
     def generate(self):
         if self.token is not None:
             return self.token
-        if path.exists(self.file):
-            if self.load():
-                return self.token
-        token = ''.join(random.choices(
-            string.ascii_letters + string.digits, k=32))
-        hash = hashlib.md5(token.encode("utf-8") +
-                           self.salt.encode()).hexdigest()
+
+        if os.path.exists(self.file) and self.load():
+            return self.token
+
+        token = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
+        hash = hashlib.blake2b(token.encode("utf-8"), salt=self.salt).hexdigest()
+
         self.save(hash)
         self.token = hash
+
         return token
 
     def validate(self, token):
-        return self.token == hashlib.md5(token.encode("utf-8") + self.salt.encode()).hexdigest()
+        return self.token == hashlib.blake2b(token.encode("utf-8"), salt=self.salt).hexdigest()
