@@ -1,0 +1,29 @@
+{
+    "c": 200,
+    "o": {
+        "hello": "world"
+    },
+    "docs": {
+        "params": [
+            {
+                "name": "test",
+                "in": "query",
+                "required": false,
+                "about": "Test args",
+                "type": "string"
+            }
+        ],
+        "responses": {
+            "get": {
+                "about": "Hello, World!",
+                "returns": "application/json",
+                "200": {
+                    "about": "Hello world response.",
+                    "example": {
+                        "hello": "world"
+                    }
+                }
+            }
+        }
+    }
+}

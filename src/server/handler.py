@@ -5,7 +5,7 @@ import urllib.parse as parse
 import sys
 import threading
 from importlib import import_module
-
+import json
 
 def grand(sv, path, data):
     p = "public/html" + path
@@ -87,6 +87,19 @@ class Handler(BaseHTTPRequestHandler):
                                .format(e.with_traceback(tb)))
 
     def handleRequest(self, path, params):
+
+        if ".." in path.path:
+            result.qe(self, result.Cause.EP_NOTFOUND)
+
+            return
+
+        if os.path.exists("resources/handle" + path.path + ".json"):
+            with open("resources/handle" + path.path + ".json", encoding="utf-8", mode="r") as r:
+                content = json.JSONDecoder().decode(r.read())
+                write(self, content["c"], json.JSONEncoder().encode(content["o"]))
+
+                return
+
         p = path.path.replace("/", ".")
 
         if p.endswith("."):
