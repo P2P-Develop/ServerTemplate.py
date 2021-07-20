@@ -109,10 +109,10 @@ class Handler(BaseHTTPRequestHandler):
             handler = import_module("server.handler_root" + p)
 
             handler.handle(self, path, params)
-        except ModuleNotFoundError and AttributeError:
+        except (ModuleNotFoundError, AttributeError):
             try:
                 handler = import_module("server.handler_root" + p + "._")
 
                 handler.handle(self, path, params)
-            except ModuleNotFoundError:
+            except (ModuleNotFoundError, AttributeError):
                 result.qe(self, result.Cause.EP_NOTFOUND)
