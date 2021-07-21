@@ -76,6 +76,11 @@ class Handler(BaseHTTPRequestHandler):
         return True
         
     def do_GET(self):
+
+        if path.path == "/docs.html":
+            self.handleRequest(path, params)
+            return
+        
         if not self.do_auth():
 
             return
