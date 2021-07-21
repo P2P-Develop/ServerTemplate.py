@@ -35,11 +35,11 @@ class CommandDoc(CommandEntry):
             self.logger.error("main", "Argument error.")
 
     def open(self):
-        self.logger.info("Opening...")
+        self.logger.info("main", "Opening...")
         webbrowser.open("http://127.0.0.1:" + str(self.instance.config["system"]["bind"]["port"]) + "/docs.html")
 
     def deploy(self):
-        self.logger.info("Deploying...")
+        self.logger.info("main", "Deploying...")
         if os.path.exists("docs.html"):
             if not os.path.exists("resources/resource"):
                 os.mkdir("resources/resource")
@@ -47,4 +47,4 @@ class CommandDoc(CommandEntry):
 
     def gen(self):
         gendoc.gen()
-        self.logger.info("Document generated successfully.")
+        self.logger.info("main", "Document generated successfully.")
