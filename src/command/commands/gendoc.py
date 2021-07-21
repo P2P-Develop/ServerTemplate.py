@@ -4,6 +4,7 @@ import shutil
 import webbrowser
 import os
 
+
 class CommandDoc(CommandEntry):
     def getName(self):
         return "doc"
@@ -34,11 +35,16 @@ class CommandDoc(CommandEntry):
             self.logger.error("main", "Argument error.")
 
     def open(self):
+        self.logger.info("Opening...")
         webbrowser.open("http://127.0.0.1:" + str(self.instance.config["system"]["bind"]["port"]) + "/docs.html")
 
     def deploy(self):
+        self.logger.info("Deploying...")
         if os.path.exists("docs.html"):
+            if not os.path.exists("resources/resource"):
+                os.mkdir("resources/resource")
             shutil.move("docs.html", "resources/resource/docs.html")
 
     def gen(self):
         gendoc.gen()
+        self.logger.info("Document generated successfully.")
