@@ -350,6 +350,10 @@ steps = [
 ]
 
 if __name__ == "__main__":
+    print("Generating documents...")
     processStep(steps)
     docPath = os.path.abspath("docs.html")
     print(f"\n\nDocument generated successfully: {docPath}")
+
+def gen():
+    processStep(steps)
