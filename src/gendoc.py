@@ -211,6 +211,7 @@ def buildExample(obj: dict):
                 a = response[1]
                 if "example" not in a:
                     print("No example was found in response.")
+                    continue
                 ex = a["example"]
                 schema = {}
                 typ3 = whatsTypeOfThisObj(ex)
