@@ -93,13 +93,6 @@ class Handler(BaseHTTPRequestHandler):
 
             return
 
-        if os.path.exists("resources/handle" + path.path + ".json"):
-            with open("resources/handle" + path.path + ".json", encoding="utf-8", mode="r") as r:
-                content = json.JSONDecoder().decode(r.read())
-                write(self, content["c"], json.JSONEncoder().encode(content["o"]))
-
-                return
-
         p = path.path.replace("/", ".")
 
         if p.endswith("."):
@@ -115,4 +108,21 @@ class Handler(BaseHTTPRequestHandler):
 
                 handler.handle(self, path, params)
             except (ModuleNotFoundError, AttributeError):
+                if os.path.exists("resources/handle" + path.path + ".txt"):
+                    with open("resources/handle" + path.path + ".txt", encoding="utf-8", mode="r") as r:
+                        content = r.read().split("\n")
+                        result.success(self, int(content[0]), content[1:])
+                        return
+                if os.path.exists("resources/handle" + path.path + ".json"):
+                    with open("resources/handle" + path.path + ".json", encoding="utf-8", mode="r") as r:
+                        content = json.JSONDecoder().decode(r.read())
+                        write(self, content["c"], json.JSONEncoder().encode(content["o"]))
+                        return
+                if os.path.exists("resources/resource" + path.path):
+                    with open("resources/resource" + path.path, mode="rb") as r:
+                        self.send_response(200)
+                        self.send_header("Content-Type", mimetypes.guess_type("resources/resource" + path.path)[0])
+                        self.end_headers()
+                        self.wfile.write(r.read())
+                        return
                 result.qe(self, result.Cause.EP_NOTFOUND)
