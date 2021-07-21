@@ -267,14 +267,14 @@ def loadAsSwagger(obj):
     swaggers = {}
     for fName in obj:
         if fName.endswith(".py"):
-            moduleName = fName[:-3].replace("/", ".")
+            moduleName = fName[4:-3].replace("/", ".")
             module = import_module(moduleName)
             if "genDoc" not in dir(module):
                 print(f"No docs were found in '{moduleName}'.")
                 continue
             print(f"Importing docs from endpoint module '{moduleName}'...")
 
-            moduleName = moduleName.replace("src.server.handler_root", "").replace(".", "/")
+            moduleName = moduleName.replace("server.handler_root", "").replace(".", "/")
             if re.match("^(.+?/|/)?_$", moduleName):
                 moduleName = moduleName[:-1]
 
