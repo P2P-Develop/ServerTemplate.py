@@ -6,6 +6,7 @@ import sys
 import threading
 from importlib import import_module
 import json
+import mimetypes
 
 def grand(sv, path, data):
     p = "public/html" + path
@@ -56,7 +57,7 @@ class Handler(BaseHTTPRequestHandler):
             result.qe(self, result.Cause.AUTH_REQUIRED)
 
             return False
-        
+
         auth = self.headers["Authorization"].split(" ")
 
         if len(auth) != 2:
@@ -74,28 +75,28 @@ class Handler(BaseHTTPRequestHandler):
 
             return False
         return True
-        
+
     def do_GET(self):
-
-        if path.path == "/docs.html":
-            self.handleRequest(path, params)
-            return
-        
-        if not self.do_auth():
-
-            return
 
         try:
             path = parse.urlparse(self.path)
             params = parse.parse_qs(path.query)
 
+            if path.path == "/docs.html":
+                self.handleRequest(path, params)
+
+                return
+
+            if not self.do_auth():
+
+                return
             self.handleRequest(path, params)
         except Exception as e:
             tb = sys.exc_info()[2]
 
             self.logger.error(self.parse_thread_name(threading.current_thread().getName()),
-                               "An error has occurred while processing request from client: {0}"
-                               .format(e.with_traceback(tb)))
+                              "An error has occurred while processing request from client: {0}"
+                              .format(e.with_traceback(tb)))
 
     def do_POST(self):
         try:
@@ -122,7 +123,7 @@ class Handler(BaseHTTPRequestHandler):
                               "An error has occurred while processing request from client: {0}"
                               .format(e.with_traceback(tb)))
 
-            
+
     def handleRequest(self, path, params):
 
         if ".." in path.path:
