@@ -49,6 +49,8 @@ info:
   version: "latest"
 host: "127.0.0.1"
 basePath: "/"
+schemes:
+- http
 
 """
 
