@@ -73,7 +73,7 @@ global swagger
 
 def whatsTypeOfThisObj(obj):
     typ3 = type(obj)
-    if typ3 is dict:
+    if typ3 is dict or typ3 is tuple:
         return "object"
     elif typ3 is bool:
         return "boolean"
@@ -171,13 +171,17 @@ def b(ex):
             if atField == "object":
                 i = 0
                 properties[zz[0]]["items"]["properties"] = {}
-                for hb in zz[1]:
+                for hb in zz[1][0].items():
                     ahx = whatsTypeOfThisObj(hb)
                     bz = {
                         "type": ahx,
-                        "example": list(hb.values())[0]
+                        "example": hb[0]
                     }
-                    properties[zz[0]]["items"]["properties"][list(hb.keys())[0]] = bz
+                    if ahx == "object":
+                        bz["example"] = hb[1]
+                        properties[zz[0]]["items"]["properties"][hb[0]] = bz
+                    else:
+                        properties[zz[0]]["items"]["properties"][hb[1]] = bz
                     i = i + 1
                     pass
             elif atField is not None:
