@@ -51,32 +51,38 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         self.logger.info(self.parse_thread_name(threading.current_thread().getName()), self.address_string() + " -> " + format % args)
 
-    def do_GET(self):
+    def do_auth(self):
         if "Authorization" not in self.headers:
             result.qe(self, result.Cause.AUTH_REQUIRED)
+
+            return False
+        
+        auth = self.headers["Authorization"].split(" ")
+
+        if len(auth) != 2:
+            result.qe(self, result.Cause.AUTH_REQUIRED)
+
+            return False
+
+        if str(auth[0]).lower() != "token":
+            result.qe(self, result.Cause.AUTH_REQUIRED)
+
+            return False
+
+        if not self.token.validate(auth[1]):
+            result.qe(self, result.Cause.AUTH_REQUIRED)
+
+            return False
+        return True
+        
+    def do_GET(self):
+        if not self.do_auth():
 
             return
 
         try:
             path = parse.urlparse(self.path)
             params = parse.parse_qs(path.query)
-
-            auth = self.headers["Authorization"].split(" ")
-
-            if len(auth) != 2:
-                result.qe(self, result.Cause.AUTH_REQUIRED)
-
-                return
-
-            if str(auth[0]).lower() != "token":
-                result.qe(self, result.Cause.AUTH_REQUIRED)
-
-                return
-
-            if not self.token.validate(auth[1]):
-                result.qe(self, result.Cause.AUTH_REQUIRED)
-
-                return
 
             self.handleRequest(path, params)
         except Exception as e:
@@ -86,6 +92,32 @@ class Handler(BaseHTTPRequestHandler):
                                "An error has occurred while processing request from client: {0}"
                                .format(e.with_traceback(tb)))
 
+    def do_POST(self):
+        try:
+            if self.do_auth():
+                return
+
+            path = parse.urlparse(self.path)
+            if "Content-Type" not in self.headers:
+                result.qe(self, result.Cause.NOT_ALLOWED_OPERATION)
+
+                return
+
+            contentType = self.headers["Content-Type"]
+
+            if contentType == "application/x-www-form-urlencoded":
+                contentLen = int(self.headers.get("content-length"))
+                reqBody = self.rfile.read(contentLen).decode("utf-8")
+                self.handleRequest(path, parse.parse_qs(reqBody))
+                return
+        except Exception as e:
+            tb = sys.exc_info()[2]
+
+            self.logger.error(self.parse_thread_name(threading.current_thread().getName()),
+                              "An error has occurred while processing request from client: {0}"
+                              .format(e.with_traceback(tb)))
+
+            
     def handleRequest(self, path, params):
 
         if ".." in path.path:
