@@ -70,7 +70,9 @@ class Main:
 
     def bindCommands(self):
         from command.commands.general import CommandExit
+        from command.commands.gendoc import CommandDoc
         main.cmd.register(CommandExit(self))
+        main.cmd.register(CommandDoc(self))
 
 
 if __name__ == "__main__":
