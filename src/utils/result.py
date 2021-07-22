@@ -14,12 +14,14 @@ def write(sv, code, txt):
 
 class Cause:
     AUTH_REQUIRED = [401, "AUTHORIZATION_REQUIRED", "Authorization required."]
-    NOT_ALLOWED_OPERATION = [405, "OPERATION_NOT_ALLOWED", "Operation not allowed."]
+    NOT_ALLOWED_OPERATION = [
+        405, "OPERATION_NOT_ALLOWED", "Operation not allowed."]
     FORBIDDEN = [403, "FORBIDDEN", "Access denied."]
     EP_NOTFOUND = [404, "E_NOTFOUND", "Endpoint not found."]
     GONE = [410, "GONE", "Resource has already gone."]
     MISSING_FIELD = [400, "MISSING_FIELD", "Missing %0 field(s): [%1]"]
-    INVALID_FIELD = [400, "INVALID_FIELD", "Invalid field: Field %0 is must be %1."]
+    INVALID_FIELD = [400, "INVALID_FIELD",
+                     "Invalid field: Field %0 is must be %1."]
     INVALID_FIELD_UNK = [400, "INVALID_FIELD", "Invalid field has found."]
     ERROR_OCCURRED = [500, "ERROR_OCCURRED", "An error has occurred."]
 

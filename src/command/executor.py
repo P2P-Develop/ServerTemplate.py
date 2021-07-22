@@ -16,6 +16,7 @@ class CommandExecutor:
         label = l[0]
         args = l[1:]
         if label not in self.commands:
-            self.logger.error("main", "Command not found. Input help for see help.")
+            self.logger.error(
+                "main", "Command not found. Input help for see help.")
             return
         self.commands[label].exec(args)

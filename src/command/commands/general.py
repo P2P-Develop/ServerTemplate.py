@@ -15,4 +15,3 @@ class CommandExit(CommandEntry):
             self.instance.die(args[0])
         else:
             self.instance.die(0)
-

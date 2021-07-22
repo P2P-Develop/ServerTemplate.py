@@ -22,7 +22,8 @@ class Main:
     def validateConfig(self, config):
         if not config["system"]["bind"]["port"]:
             self.log.fatal("config", "system.bind.port not found.")
-            self.log.hint("config", "Add or uncomment system.bind.port and try again.")
+            self.log.hint(
+                "config", "Add or uncomment system.bind.port and try again.")
             return False
         clen = 0
         if clen != 0:
@@ -40,7 +41,8 @@ class Main:
         self.log.info("main", "Starting...")
         if not path.exists("config.yml"):
             shutil.copy("resources/config.yml", "config.yml")
-            self.log.info("config", "Copied resources/config.yml to ./config.yml .")
+            self.log.info(
+                "config", "Copied resources/config.yml to ./config.yml .")
             self.log.fatal("config", "Please edit config.yml first.")
             self.die(1)
 
@@ -56,9 +58,11 @@ class Main:
             self.log.warn("main", "Token not found. ")
             self.log.info("auth", "Generating token...")
             self.log.info("auth", "Token generated: " + token.generate())
-            self.log.warn("auth", "Make sure to copy this token now. You won't be able to see it again.")
+            self.log.warn(
+                "auth", "Make sure to copy this token now. You won't be able to see it again.")
 
-        server.bind(int(config["system"]["bind"]["port"]), self, self.log, token)
+        server.bind(int(config["system"]["bind"]["port"]),
+                    self, self.log, token)
         self.log.info("main", "Ready")
 
         while True:

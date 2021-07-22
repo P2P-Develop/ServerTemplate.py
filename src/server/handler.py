@@ -52,7 +52,8 @@ class Handler(BaseHTTPRequestHandler):
         return f"thread-{splittext[0]}-{splittext[1]}"
 
     def log_message(self, format, *args):
-        self.logger.info(self.parse_thread_name(threading.current_thread().getName()), self.address_string() + " -> " + format % args)
+        self.logger.info(self.parse_thread_name(threading.current_thread().getName()), self.address_string() +
+                         " -> " + format % args)
 
     def do_auth(self):
         if "Authorization" not in self.headers:

@@ -48,7 +48,8 @@ def startServer(instance, port, logger, token):
 
 
 def bind(port, instance, logger, token):
-    thread = threading.Thread(target=startServer, args=(instance, port, logger, token))
+    thread = threading.Thread(target=startServer, args=(
+             instance, port, logger,  token))
     thread.daemon = True
     thread.start()
     logger.info("server", "Listening on 0.0.0.0:" + str(port))
