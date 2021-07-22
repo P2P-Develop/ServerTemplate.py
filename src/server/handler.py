@@ -7,6 +7,8 @@ import threading
 from importlib import import_module
 import json
 import mimetypes
+import cgi
+
 
 def grand(sv, path, data):
     p = "public/html" + path
@@ -100,7 +102,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
-            if self.do_auth():
+            if self.authorization():
                 return
 
             path = parse.urlparse(self.path)
@@ -116,12 +118,21 @@ class Handler(BaseHTTPRequestHandler):
                 reqBody = self.rfile.read(contentLen).decode("utf-8")
                 self.handleRequest(path, parse.parse_qs(reqBody))
                 return
-        except Exception as e:
-            tb = sys.exc_info()[2]
-
-            self.logger.error(self.parse_thread_name(threading.current_thread().getName()),
-                              "An error has occurred while processing request from client: {0}"
-                              .format(e.with_traceback(tb)))
+            elif contentType.startswith("multipart/form-data; boundary="):
+                f = cgi.FieldStorage(fp=self.rfile,
+                                     headers=self.headers,
+                                     environ={
+                                         "REQUEST_METHOD": "POST",
+                                         "CONTENT_TYPE": contentType,
+                                     },
+                                     encoding="utf-8")
+                if "file" not in f:
+                    result.qe(self, result.Cause.INVALID_FIELD_UNK)
+                    return
+                params = {}
+                for fs in f.keys():
+                    params[fs] = f.getvalue(fs)
+                self.handleRequest(path, params)
 
 
     def handleRequest(self, path, params):
