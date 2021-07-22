@@ -21,7 +21,7 @@ class Main:
 
     def validateConfig(self, config):
         if not config["system"]["bind"]["port"]:
-            self.log.fatal("config", "system.bind.port not found.")
+            self.log.severe("config", "system.bind.port not found.")
             self.log.hint(
                 "config", "Add or uncomment system.bind.port and try again.")
             return False
@@ -43,7 +43,7 @@ class Main:
             shutil.copy("resources/config.yml", "config.yml")
             self.log.info(
                 "config", "Copied resources/config.yml to ./config.yml .")
-            self.log.fatal("config", "Please edit config.yml first.")
+            self.log.serve("config", "Please edit config.yml first.")
             self.die(1)
 
         config = loadConfig("config.yml")
@@ -69,6 +69,7 @@ class Main:
             self.console()
 
     def die(self, i):
+        self.log.fatal("main", "Application exit with " + str(i))
         self.log.commit()
         exit(i)
 

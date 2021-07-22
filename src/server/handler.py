@@ -97,9 +97,9 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             tb = sys.exc_info()[2]
 
-            self.logger.error(self.parse_thread_name(threading.current_thread().getName()),
-                              "An error has occurred while processing request from client: {0}"
-                              .format(e.with_traceback(tb)))
+            self.logger.severe(self.parse_thread_name(threading.current_thread().getName()),
+                               "An error has occurred while processing request from client: {0}"
+                               .format(e.with_traceback(tb)))
 
     def do_POST(self):
         try:
@@ -134,6 +134,13 @@ class Handler(BaseHTTPRequestHandler):
                 for fs in f.keys():
                     params[fs] = f.getvalue(fs)
                 self.handleRequest(path, params)
+        except Exception as e:
+            tb = sys.exc_info()[2]
+
+            self.logger.severe(self.parse_thread_name(threading.current_thread().getName()),
+                               "An error has occurred while processing request from client: {0}"
+                               .format(e.with_traceback(tb)))
+
 
 
     def handleRequest(self, path, params):
