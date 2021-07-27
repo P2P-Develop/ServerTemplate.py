@@ -8,6 +8,7 @@ from importlib import import_module
 import json
 import mimetypes
 import cgi
+import traceback
 
 
 def grand(sv, path, data):
@@ -57,24 +58,24 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_auth(self):
         if "Authorization" not in self.headers:
-            result.post_error(self, result.Cause.AUTH_REQUIRED)
+            result.qe(self, result.Cause.AUTH_REQUIRED)
 
             return False
 
         auth = self.headers["Authorization"].split(" ")
 
         if len(auth) != 2:
-            result.post_error(self, result.Cause.AUTH_REQUIRED)
+            result.qe(self, result.Cause.AUTH_REQUIRED)
 
             return False
 
         if str(auth[0]).lower() != "token":
-            result.post_error(self, result.Cause.AUTH_REQUIRED)
+            result.qe(self, result.Cause.AUTH_REQUIRED)
 
             return False
 
         if not self.token.validate(auth[1]):
-            result.post_error(self, result.Cause.AUTH_REQUIRED)
+            result.qe(self, result.Cause.AUTH_REQUIRED)
 
             return False
         return True
@@ -91,24 +92,20 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
             if not self.do_auth():
-
                 return
             self.handleRequest(path, params)
-        except Exception as e:
-            tb = sys.exc_info()[2]
+        except:
+            self.printStacktrace(*sys.exc_info())
 
-            self.logger.severe(self.parse_thread_name(threading.current_thread().getName()),
-                               "An error has occurred while processing request from client: {0}"
-                               .format(e.with_traceback(tb)))
 
     def do_POST(self):
         try:
-            if self.do_auth():
+            if self.authorization():
                 return
 
             path = parse.urlparse(self.path)
             if "Content-Type" not in self.headers:
-                result.post_error(self, result.Cause.NOT_ALLOWED_OPERATION)
+                result.qe(self, result.Cause.NOT_ALLOWED_OPERATION)
 
                 return
 
@@ -128,25 +125,19 @@ class Handler(BaseHTTPRequestHandler):
                                      },
                                      encoding="utf-8")
                 if "file" not in f:
-                    result.post_error(self, result.Cause.INVALID_FIELD_UNK)
+                    result.qe(self, result.Cause.INVALID_FIELD_UNK)
                     return
                 params = {}
                 for fs in f.keys():
                     params[fs] = f.getvalue(fs)
                 self.handleRequest(path, params)
-        except Exception as e:
-            tb = sys.exc_info()[2]
-
-            self.logger.severe(self.parse_thread_name(threading.current_thread().getName()),
-                               "An error has occurred while processing request from client: {0}"
-                               .format(e.with_traceback(tb)))
-
-
+        except:
+            self.printStacktrace(*sys.exc_info())
 
     def handleRequest(self, path, params):
 
         if ".." in path.path:
-            result.post_error(self, result.Cause.EP_NOTFOUND)
+            result.qe(self, result.Cause.EP_NOTFOUND)
 
             return
 
@@ -182,4 +173,38 @@ class Handler(BaseHTTPRequestHandler):
                         self.end_headers()
                         self.wfile.write(r.read())
                         return
-                result.post_error(self, result.Cause.EP_NOTFOUND)
+                result.qe(self, result.Cause.EP_NOTFOUND)
+
+    def printStacktrace(self, etype, exception, trace):
+        tb = traceback.TracebackException(etype, exception, trace)
+
+        st = f"Unexpected exception while handling client request resource {self.path}\n"
+
+        flag = False
+
+        for stack in tb.stack:
+            stack: traceback.FrameSummary
+            if "handler_root" in stack.filename and not flag:
+                flag = True
+                st = st + "Caused by: " + self.getClassChain(etype) + ": " + str(tb) + "\n"
+            st = st + "        at " + self.normalizeFileName(stack.filename) + "." + stack.name \
+                 + "(" + os.path.basename(stack.filename) + ":" + str(stack.lineno) \
+                 + "): " + stack.line + "\n"
+
+        self.logger.warn(self.parse_thread_name(threading.current_thread().getName()), st)
+
+
+    @staticmethod
+    def normalizeFileName(path: str):
+        das = path.split("src")
+        del das[0]
+        da = "".join(das)
+        da = da.replace("\\", ".").replace("/", ".")
+        return da[1:-3]
+
+    @staticmethod
+    def getClassChain(clazz):
+        mod = clazz.__module__
+        if mod == "builtins":
+            return clazz.__qualname__
+        return f"{mod}.{clazz.__qualname__}"
