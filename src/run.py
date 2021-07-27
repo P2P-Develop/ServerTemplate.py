@@ -20,7 +20,7 @@ class Main:
         self.config = None
 
     def validateConfig(self, config):
-        if not config["system"]["bind"]["port"]:
+        if "port" not in config["system"]["bind"]:
             self.log.severe("config", "system.bind.port not found.")
             self.log.hint(
                 "config", "Add or uncomment system.bind.port and try again.")
