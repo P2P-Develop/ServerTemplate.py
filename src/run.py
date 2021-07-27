@@ -43,7 +43,7 @@ class Main:
             shutil.copy("resources/config.yml", "config.yml")
             self.log.info(
                 "config", "Copied resources/config.yml to ./config.yml .")
-            self.log.serve("config", "Please edit config.yml first.")
+            self.log.severe("config", "Please edit config.yml first.")
             self.die(1)
 
         config = loadConfig("config.yml")
