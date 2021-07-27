@@ -97,10 +97,9 @@ class Handler(BaseHTTPRequestHandler):
         except:
             self.printStacktrace(*sys.exc_info())
 
-
     def do_POST(self):
         try:
-            if self.authorization():
+            if self.do_auth():
                 return
 
             path = parse.urlparse(self.path)
@@ -192,7 +191,6 @@ class Handler(BaseHTTPRequestHandler):
                  + "): " + stack.line + "\n"
 
         self.logger.warn(self.parse_thread_name(threading.current_thread().getName()), st)
-
 
     @staticmethod
     def normalizeFileName(path: str):
