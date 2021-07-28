@@ -1,7 +1,5 @@
 import json
-import os
-from enum import Enum
-from server import ep
+
 
 def encode(amfs):
     return json.JSONEncoder().encode(amfs)
@@ -16,16 +14,17 @@ def write(sv, code, txt):
 
 class Cause:
     AUTH_REQUIRED = [401, "AUTHORIZATION_REQUIRED", "Authorization required."]
-    NOT_ALLOWED_OPERATION = [
-        405, "OPERATION_NOT_ALLOWED", "Operation not allowed."]
+    NOT_ALLOWED_OPERATION = [405, "OPERATION_NOT_ALLOWED", "Operation not allowed."]
     FORBIDDEN = [403, "FORBIDDEN", "Access denied."]
     EP_NOTFOUND = [404, "E_NOTFOUND", "Endpoint not found."]
     GONE = [410, "GONE", "Resource has already gone."]
     MISSING_FIELD = [400, "MISSING_FIELD", "Missing %0 field(s): [%1]"]
-    INVALID_FIELD = [400, "INVALID_FIELD",
-                     "Invalid field: Field %0 is must be %1."]
+    INVALID_FIELD = [400, "INVALID_FIELD", "Invalid field: Field %0 is must be %1."]
     INVALID_FIELD_UNK = [400, "INVALID_FIELD", "Invalid field has found."]
     ERROR_OCCURRED = [500, "ERROR_OCCURRED", "An error has occurred."]
+    NOT_FOUND = [404, "NOTFOUND", "Result not found."]
+    ALREADY_EXISTS = [409, "ALREADY_EXISTS", "Resource already exists."]
+    SIZE_OVER = [413, "PAYLOAD_TOO_LARGE", "Payload too large."]
 
 
 def validate(handler, fname, value, must):
@@ -39,7 +38,7 @@ def validate(handler, fname, value, must):
 
 
 def missing(handler, fields, require):
-    diff = search_missing(fields, require)
+    diff = searchMissing(fields, require)
     if len(diff) is 0:
         return False
     write(handler, 400, error(Cause.MISSING_FIELD, Cause.MISSING_FIELD[2]
@@ -55,15 +54,15 @@ def success(handler, code, obj):
     }))
 
 
-def post_error(handler, cause):
-    write(handler, cause[0], error(cause))
-
-
-def search_missing(fields, require):
+def searchMissing(fields, require):
     for key in fields.keys():
         if key in require:
             require.remove(key)
     return require
+
+
+def qerror(handler, cause, message=None):
+    write(handler, cause[0], error(cause, message))
 
 
 def error(cause, message=None):
@@ -93,51 +92,3 @@ def wssuccess():
     return encode({
         "success": True
     })
-
-
-def finish(handler):
-    handler.finish()
-    handler.connection.close()
-
-
-class Method(Enum):
-    GET = "GET"
-    POST = "POST"
-    PUT = "PUT"
-    DELETE = "DELETE"
-    PATCH = "PATCH"
-
-    HEAD = "HEAD"
-    CONNECT = "CONNECT"
-    OPTIONS = "OPTIONS"
-
-    @staticmethod
-    def values():
-        return [e.value for e in Method]
-
-
-class EndPoint:
-    def __init__(self):
-        pass
-
-    def __call__(self, func):
-        def _b(method, require_args=None, no_auth=False):
-            if type(method) == Method:
-                method = method.value.upper()
-            else:
-                method = str(method.upper())
-
-            ep.loader.signals.append({
-                "mod": __file__.replace(os.sep, "/")[4:-3],
-                "method": method,
-                "func": func.__name__,
-                "require_args": require_args if require_args is None else [],
-                "no_auth": no_auth
-            })
-
-        return _b
-
-
-__all__ = [
-    "write", "Cause", "validate", "missing", "success", "post_error", "finish", "Method", "EndPoint"
-]
