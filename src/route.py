@@ -117,6 +117,16 @@ class Method(Enum):
         return [e.value for e in Method]
 
 
+def require_args(*args):
+    def context(func):
+        def _context(handler, path, params):
+            if missing(handler, params, args):
+                return
+            func(handler, path, params)
+        return _context
+    return context
+
+
 def require_auth(func):
     def context(handler, path, params):
         if handler.do_auth():
@@ -126,27 +136,7 @@ def require_auth(func):
     return context
 
 
-def EndPoint(method, require_args=None, no_auth=False):
-    def _a(func):
-        def _b():
-            if type(method) == Method:
-                m2 = method.value.upper()
-            else:
-                m2 = str(method.upper())
-
-            ep.loader.signals.append({
-                "mod": __file__.replace(os.sep, "/")[4:-3],
-                "method": m2,
-                "func": func,
-                "require_args": require_args if require_args is None else [],
-                "no_auth": no_auth
-            })
-
-        return _b
-
-    return _a
-
-
 __all__ = [
-    "write", "Cause", "validate", "missing", "success", "post_error", "finish", "Method", "EndPoint"
+    "write", "Cause", "validate", "missing", "success", "post_error",
+    "finish", "Method", "require_args", "require_auth"
 ]

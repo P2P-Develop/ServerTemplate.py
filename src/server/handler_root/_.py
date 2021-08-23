@@ -1,11 +1,9 @@
 import route
 
 
+@route.require_args("text")  # Check if the required arguments are given.
 def handle(handler, path, params):
-    if "text" in params:
-        q = params["text"]
-    else:
-        q = "Hello, world!"
+    q = params["text"]
     route.success(handler, 200, q)
 
 
