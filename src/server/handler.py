@@ -1,6 +1,6 @@
 from http.server import BaseHTTPRequestHandler
 import os
-from utils import result
+import route
 import urllib.parse as parse
 import sys
 import threading
@@ -9,7 +9,8 @@ import json
 import mimetypes
 import cgi
 import traceback
-
+import asyncio
+import inspect
 
 def grand(sv, path, data):
     p = "public/html" + path
@@ -52,33 +53,36 @@ class Handler(BaseHTTPRequestHandler):
 
         return f"thread-{splittext[0]}-{splittext[1]}"
 
+    def getLogName(self):
+        return self.parse_thread_name(threading.current_thread().getName())
+
     def log_message(self, format, *args):
-        self.logger.info(self.parse_thread_name(threading.current_thread().getName()), self.address_string() +
+        self.logger.info(self.getLogName(), self.address_string() +
                          " -> " + format % args)
 
     def do_auth(self):
         if "Authorization" not in self.headers:
-            result.qe(self, result.Cause.AUTH_REQUIRED)
+            route.post_error(self, route.Cause.AUTH_REQUIRED)
 
-            return False
+            return True
 
         auth = self.headers["Authorization"].split(" ")
 
         if len(auth) != 2:
-            result.qe(self, result.Cause.AUTH_REQUIRED)
+            route.post_error(self, route.Cause.AUTH_REQUIRED)
 
-            return False
+            return True
 
         if str(auth[0]).lower() != "token":
-            result.qe(self, result.Cause.AUTH_REQUIRED)
+            route.post_error(self, route.Cause.AUTH_REQUIRED)
 
-            return False
+            return True
 
         if not self.token.validate(auth[1]):
-            result.qe(self, result.Cause.AUTH_REQUIRED)
+            route.post_error(self, route.Cause.AUTH_REQUIRED)
 
-            return False
-        return True
+            return True
+        return False
 
     def do_GET(self):
 
@@ -91,8 +95,12 @@ class Handler(BaseHTTPRequestHandler):
 
                 return
 
-            if not self.do_auth():
+            if self.do_auth():
                 return
+
+            for param in list(params.keys()):
+                params[param] = params[param][0]
+
             self.handleRequest(path, params)
         except:
             self.printStacktrace(*sys.exc_info())
@@ -104,7 +112,7 @@ class Handler(BaseHTTPRequestHandler):
 
             path = parse.urlparse(self.path)
             if "Content-Type" not in self.headers:
-                result.qe(self, result.Cause.NOT_ALLOWED_OPERATION)
+                route.post_error(self, route.Cause.NOT_ALLOWED_OPERATION)
 
                 return
 
@@ -115,7 +123,7 @@ class Handler(BaseHTTPRequestHandler):
                 reqBody = self.rfile.read(contentLen).decode("utf-8")
                 self.handleRequest(path, parse.parse_qs(reqBody))
                 return
-            elif contentType.startswith("multipart/form-data; boundary="):
+            elif contentType.startswith("multipart/form-data"):
                 f = cgi.FieldStorage(fp=self.rfile,
                                      headers=self.headers,
                                      environ={
@@ -124,7 +132,7 @@ class Handler(BaseHTTPRequestHandler):
                                      },
                                      encoding="utf-8")
                 if "file" not in f:
-                    result.qe(self, result.Cause.INVALID_FIELD_UNK)
+                    route.post_error(self, route.Cause.INVALID_FIELD_UNK)
                     return
                 params = {}
                 for fs in f.keys():
@@ -136,7 +144,7 @@ class Handler(BaseHTTPRequestHandler):
     def handleRequest(self, path, params):
 
         if ".." in path.path:
-            result.qe(self, result.Cause.EP_NOTFOUND)
+            route.post_error(self, route.Cause.EP_NOTFOUND)
 
             return
 
@@ -148,17 +156,24 @@ class Handler(BaseHTTPRequestHandler):
         try:
             handler = import_module("server.handler_root" + p)
 
-            handler.handle(self, path, params)
+            if inspect.iscoroutinefunction(handler.handle):
+                asyncio.run(handler.handle(self, path, params))
+            else:
+                handler.handle(self, path, params)
+
         except (ModuleNotFoundError, AttributeError):
             try:
                 handler = import_module("server.handler_root" + p + "._")
 
-                handler.handle(self, path, params)
+                if inspect.iscoroutinefunction(handler.handle):
+                    asyncio.run(handler.handle(self, path, params))
+                else:
+                    handler.handle(self, path, params)
             except (ModuleNotFoundError, AttributeError):
                 if os.path.exists("resources/handle" + path.path + ".txt"):
                     with open("resources/handle" + path.path + ".txt", encoding="utf-8", mode="r") as r:
                         content = r.read().split("\n")
-                        result.success(self, int(content[0]), content[1:])
+                        route.success(self, int(content[0]), content[1:])
                         return
                 if os.path.exists("resources/handle" + path.path + ".json"):
                     with open("resources/handle" + path.path + ".json", encoding="utf-8", mode="r") as r:
@@ -172,7 +187,46 @@ class Handler(BaseHTTPRequestHandler):
                         self.end_headers()
                         self.wfile.write(r.read())
                         return
-                result.qe(self, result.Cause.EP_NOTFOUND)
+                route.post_error(self, route.Cause.EP_NOTFOUND)
+        except Exception as e:
+            self.printStacktrace(*sys.exc_info())
+            pass
+
+    def handle_one_request(self):
+        try:
+            self.raw_requestline = self.rfile.readline(65537)
+            if len(self.raw_requestline) > 65536:
+                self.requestline = ''
+                self.request_version = ''
+                self.command = ''
+                self.send_error(414)
+                return
+            if not self.raw_requestline:
+                self.close_connection = True
+                return
+            if not self.parse_request():
+                return
+            mname = 'do_' + self.command
+            if not hasattr(self, mname):
+                self.send_error(
+                    400,
+                    "Unsupported method (%r)" % self.command)
+                return
+            method = getattr(self, mname)
+            method()
+            if not self.wfile.closed:
+                self.wfile.flush()
+                self.wfile.close()
+        except Exception as e:
+            self.printStacktrace(*sys.exc_info())
+            self.close_connection = True
+            return
+
+    def send_response(self, code, message=None):
+        self.log_request(code)
+        self.send_response_only(code, message)
+        self.send_header("Server", "gws")
+        self.send_header("Connection", "close")
 
     def printStacktrace(self, etype, exception, trace):
         tb = traceback.TracebackException(etype, exception, trace)
