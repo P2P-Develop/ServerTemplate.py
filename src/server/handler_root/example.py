@@ -8,7 +8,7 @@ def handle(handler, path, params):
     route.success(handler, 200, "It's working!")
 
 
-def genDoc():
+def docs():
     return {
         "get": {
             "about": "Example document.",

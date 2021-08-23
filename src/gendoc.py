@@ -279,7 +279,7 @@ def loadAsSwagger(obj):
                 moduleName = moduleName[:-1]
 
             swaggers[moduleName] = {
-                "responses": module.genDoc()
+                "responses": module.docs()
             }
             if "params" in dir(module):
                 swaggers[moduleName]["params"] = module.params()

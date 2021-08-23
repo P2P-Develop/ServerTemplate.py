@@ -90,7 +90,7 @@ You need to setup ServerTemplate.py.
             }
         ]
 
-    def genDoc():
+    def docs():
         return {
             "get": {
                 "about": "Outputs the specified text.",
