@@ -1,4 +1,7 @@
 import json
+import os
+from enum import Enum
+from server import ep
 
 
 def encode(amfs):
@@ -96,3 +99,41 @@ def wssuccess():
 def finish(handler):
     handler.finish()
     handler.connection.close()
+
+class Method(Enum):
+    GET = "GET"
+    POST = "POST"
+    PUT = "PUT"
+    DELETE = "DELETE"
+    PATCH = "PATCH"
+
+    HEAD = "HEAD"
+    CONNECT = "CONNECT"
+    OPTIONS = "OPTIONS"
+
+    @staticmethod
+    def values():
+        return [e.value for e in Method]
+
+
+def EndPoint(method, require_args=None, no_auth=False):
+    def _a(func):
+        def _b():
+            if type(method) == Method:
+                m2 = method.value.upper()
+            else:
+                m2 = str(method.upper())
+
+            ep.loader.signals.append({
+                "mod": __file__.replace(os.sep, "/")[4:-3],
+                "method": m2,
+                "func": func,
+                "require_args": require_args if require_args is None else [],
+                "no_auth": no_auth
+            })
+        return _b
+    return _a
+
+__all__ = [
+    "write", "Cause", "validate", "missing", "success", "post_error", "finish", "Method", "EndPoint"
+]
