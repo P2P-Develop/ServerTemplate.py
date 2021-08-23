@@ -12,6 +12,7 @@ import traceback
 import asyncio
 import inspect
 
+
 def grand(sv, path, data):
     p = "public/html" + path
     if os.path.exists(p):
@@ -101,49 +102,52 @@ class Handler(BaseHTTPRequestHandler):
         if p.endswith("."):
             p = p[:-1]
 
+        if self.tryModuleHandle("server.handler_root" + p, path, params):
+            return
+
+        if self.tryModuleHandle("server.handler_root" + p + "._", path, params):
+            return
+
         try:
-            handler = import_module("server.handler_root" + p)
+            if os.path.exists("resources/handle" + path + ".txt"):
+                with open("resources/handle" + path + ".txt", encoding="utf-8", mode="r") as r:
+                    content = r.read().split("\n")
+                    route.success(self, int(content[0]), content[1:])
+                    return
 
-            if inspect.iscoroutinefunction(handler.handle):
-                asyncio.run(handler.handle(self, path, params))
-            else:
-                handler.handle(self, path, params)
+            if os.path.exists("resources/handle" + path + ".json"):
+                with open("resources/handle" + path + ".json", encoding="utf-8", mode="r") as r:
+                    content = json.JSONDecoder().decode(r.read())
+                    if content["auth"]:
+                        if self.do_auth():
+                            return
 
-        except (ModuleNotFoundError, AttributeError):
-            try:
-                handler = import_module("server.handler_root" + p + "._")
+                    write(self, content["code"], json.JSONEncoder().encode(content["obj"]))
+                    return
 
-                if inspect.iscoroutinefunction(handler.handle):
-                    asyncio.run(handler.handle(self, path, params))
-                else:
-                    handler.handle(self, path, params)
-            except (ModuleNotFoundError, AttributeError):
-                if os.path.exists("resources/handle" + path + ".txt"):
-                    with open("resources/handle" + path + ".txt", encoding="utf-8", mode="r") as r:
-                        content = r.read().split("\n")
-                        route.success(self, int(content[0]), content[1:])
-                        return
-                if os.path.exists("resources/handle" + path + ".json"):
-                    with open("resources/handle" + path + ".json", encoding="utf-8", mode="r") as r:
-                        content = json.JSONDecoder().decode(r.read())
-                        if content["auth"]:
-                            if self.do_auth():
-                                return
-                        write(self, content["code"], json.JSONEncoder().encode(content["obj"]))
-                        return
-                if os.path.exists("resources/resource" + path):
-                    if self.do_auth():
-                        return
-                    with open("resources/resource" + path, mode="rb") as r:
-                        self.send_response(200)
-                        self.send_header("Content-Type", mimetypes.guess_type("resources/resource" + path)[0])
-                        self.end_headers()
-                        self.wfile.write(r.read())
-                        return
-                route.post_error(self, route.Cause.EP_NOTFOUND)
+            if os.path.exists("resources/resource" + path):
+                if self.do_auth():
+                    return
+
+                with open("resources/resource" + path, mode="rb") as r:
+                    self.send_response(200)
+                    self.send_header("Content-Type", mimetypes.guess_type("resources/resource" + path)[0])
+                    self.end_headers()
+                    self.wfile.write(r.read())
+                    return
+
+            route.post_error(self, route.Cause.EP_NOTFOUND)
         except Exception as e:
             self.printStacktrace(*sys.exc_info())
             pass
+
+    def tryModuleHandle(self, mod_name, path, params):
+        handler = import_module(mod_name)
+
+        if inspect.iscoroutinefunction(handler.handle):
+            asyncio.run(handler.handle(self, path, params))
+        else:
+            handler.handle(self, path, params)
 
     def handleSwitch(self):
         try:
@@ -191,8 +195,6 @@ class Handler(BaseHTTPRequestHandler):
                 return
         except:
             self.printStacktrace(*sys.exc_info())
-
-
 
     def handle_one_request(self):
         try:
