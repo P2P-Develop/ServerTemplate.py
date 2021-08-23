@@ -117,10 +117,81 @@ class Method(Enum):
         return [e.value for e in Method]
 
 
+def quick_invalid(handler, name, message):
+    write(handler, 400, error(Cause.INVALID_FIELD, Cause.INVALID_FIELD[2]
+                              .replace("%0", name)
+                              .replace("%1", message)))
+
+
+def validate_arg(name, arg_type, min_value=-1, max_value=-1, missing_ok=False, do_cast=True, *must_be):
+    if arg_type not in ["str", "string", "bool", "boolean", "number", "int", "double", "decimal", "float"]:
+        raise ValueError("arg_type is must be " +
+                         ", ".join(["str", "string", "bool", "boolean", "number", "int", "double", "decimal", "float"]))
+
+    def context(func):
+        def _context(handler, path, params):
+            if name not in params and not missing_ok:
+                raise ValueError(f"Parameter '{name}' is not in parameters. "
+                                 "Set missing_ok to True, or use @route.require_args annotation.")
+
+            value = params[name]
+
+            if "str" in arg_type:
+                if len(must_be) is not 0 and value not in must_be:
+                    quick_invalid(handler, name, ", ".join(must_be))
+                    return
+
+                if min_value is not -1 and len(value) < min_value:
+                    quick_invalid(handler, name, f"at least {min_value} character")
+                    return
+
+                if max_value is not -1 and len(value) > max_value:
+                    quick_invalid(handler, name, f"less than {max_value} character")
+                    return
+                if do_cast:
+                    params[name] = str(value)
+
+            elif "bool" in arg_type:
+                if value not in ("true", "false") + must_be:
+                    quick_invalid(handler, name, " or ".join(("true", "false") + must_be))
+                    return
+
+                if do_cast:
+                    params[name] = bool(value)
+
+            else:
+                val = None
+                try:
+                    if "int" in arg_type or arg_type == "number":
+                        val = int(value)
+                    else:
+                        val = float(value)
+                except ValueError:
+                    quick_invalid(handler, name, arg_type)
+
+                if len(must_be) is not 0 and val not in must_be:
+                    quick_invalid(handler, name, ", ".join(must_be))
+                    return
+
+                if min_value is not -1 and val < min_value:
+                    quick_invalid(handler, name, f"at least {min_value}")
+                    return
+
+                if max_value is not -1 and val > max_value:
+                    quick_invalid(handler, name, f"less than {max_value}")
+                    return
+
+                if do_cast:
+                    params[name] = val
+
+            func(handler, path, params)
+        return _context
+    return context
+
 def require_args(*args):
     def context(func):
         def _context(handler, path, params):
-            if missing(handler, params, args):
+            if missing(handler, params, list(args)):
                 return
             func(handler, path, params)
         return _context
@@ -138,5 +209,5 @@ def require_auth(func):
 
 __all__ = [
     "write", "Cause", "validate", "missing", "success", "post_error",
-    "finish", "Method", "require_args", "require_auth"
+    "finish", "Method", "require_args", "require_auth", "validate_arg"
 ]
