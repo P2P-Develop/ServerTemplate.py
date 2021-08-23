@@ -12,6 +12,7 @@ flake8 = "*"
 
 [scripts]
 start = "python src/run.py"
+docs = "python src/gendoc.py"
 format = "autopep8 -ivr src"
 lint = "flake8 --show-source src"
 
