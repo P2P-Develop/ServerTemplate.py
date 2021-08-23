@@ -1,4 +1,4 @@
-from utils import result
+import route
 
 
 def handle(handler, path, params):
@@ -6,7 +6,7 @@ def handle(handler, path, params):
         q = params["text"]
     else:
         q = "Hello, world!"
-    result.success(handler, 200, q)
+    route.success(handler, 200, q)
 
 
 def params():
