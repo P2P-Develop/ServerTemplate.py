@@ -1,6 +1,7 @@
 {
-    "c": 200,
-    "o": {
+    "code": 200,
+    "auth": true,
+    "obj": {
         "hello": "world"
     },
     "docs": {

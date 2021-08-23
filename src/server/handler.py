@@ -61,6 +61,11 @@ class Handler(BaseHTTPRequestHandler):
                          " -> " + format % args)
 
     def do_auth(self):
+        if self.path == "/docs.html":
+            self.callHandler("/docs.html", None)
+
+            return True
+
         if "Authorization" not in self.headers:
             route.post_error(self, route.Cause.AUTH_REQUIRED)
 
@@ -84,71 +89,14 @@ class Handler(BaseHTTPRequestHandler):
             return True
         return False
 
-    def do_GET(self):
+    def callHandler(self, path: str, params):
 
-        try:
-            path = parse.urlparse(self.path)
-            params = parse.parse_qs(path.query)
-
-            if path.path == "/docs.html":
-                self.handleRequest(path, params)
-
-                return
-
-            if self.do_auth():
-                return
-
-            for param in list(params.keys()):
-                params[param] = params[param][0]
-
-            self.handleRequest(path, params)
-        except:
-            self.printStacktrace(*sys.exc_info())
-
-    def do_POST(self):
-        try:
-            if self.do_auth():
-                return
-
-            path = parse.urlparse(self.path)
-            if "Content-Type" not in self.headers:
-                route.post_error(self, route.Cause.NOT_ALLOWED_OPERATION)
-
-                return
-
-            contentType = self.headers["Content-Type"]
-
-            if contentType == "application/x-www-form-urlencoded":
-                contentLen = int(self.headers.get("content-length"))
-                reqBody = self.rfile.read(contentLen).decode("utf-8")
-                self.handleRequest(path, parse.parse_qs(reqBody))
-                return
-            elif contentType.startswith("multipart/form-data"):
-                f = cgi.FieldStorage(fp=self.rfile,
-                                     headers=self.headers,
-                                     environ={
-                                         "REQUEST_METHOD": "POST",
-                                         "CONTENT_TYPE": contentType,
-                                     },
-                                     encoding="utf-8")
-                if "file" not in f:
-                    route.post_error(self, route.Cause.INVALID_FIELD_UNK)
-                    return
-                params = {}
-                for fs in f.keys():
-                    params[fs] = f.getvalue(fs)
-                self.handleRequest(path, params)
-        except:
-            self.printStacktrace(*sys.exc_info())
-
-    def handleRequest(self, path, params):
-
-        if ".." in path.path:
+        if ".." in path:
             route.post_error(self, route.Cause.EP_NOTFOUND)
 
             return
 
-        p = path.path.replace("/", ".")
+        p = path.replace("/", ".")
 
         if p.endswith("."):
             p = p[:-1]
@@ -170,20 +118,25 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     handler.handle(self, path, params)
             except (ModuleNotFoundError, AttributeError):
-                if os.path.exists("resources/handle" + path.path + ".txt"):
-                    with open("resources/handle" + path.path + ".txt", encoding="utf-8", mode="r") as r:
+                if os.path.exists("resources/handle" + path + ".txt"):
+                    with open("resources/handle" + path + ".txt", encoding="utf-8", mode="r") as r:
                         content = r.read().split("\n")
                         route.success(self, int(content[0]), content[1:])
                         return
-                if os.path.exists("resources/handle" + path.path + ".json"):
-                    with open("resources/handle" + path.path + ".json", encoding="utf-8", mode="r") as r:
+                if os.path.exists("resources/handle" + path + ".json"):
+                    with open("resources/handle" + path + ".json", encoding="utf-8", mode="r") as r:
                         content = json.JSONDecoder().decode(r.read())
-                        write(self, content["c"], json.JSONEncoder().encode(content["o"]))
+                        if content["auth"]:
+                            if self.do_auth():
+                                return
+                        write(self, content["code"], json.JSONEncoder().encode(content["obj"]))
                         return
-                if os.path.exists("resources/resource" + path.path):
-                    with open("resources/resource" + path.path, mode="rb") as r:
+                if os.path.exists("resources/resource" + path):
+                    if self.do_auth():
+                        return
+                    with open("resources/resource" + path, mode="rb") as r:
                         self.send_response(200)
-                        self.send_header("Content-Type", mimetypes.guess_type("resources/resource" + path.path)[0])
+                        self.send_header("Content-Type", mimetypes.guess_type("resources/resource" + path)[0])
                         self.end_headers()
                         self.wfile.write(r.read())
                         return
@@ -191,6 +144,55 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             self.printStacktrace(*sys.exc_info())
             pass
+
+    def handleSwitch(self):
+        try:
+            path = parse.urlparse(self.path)
+            if self.command in ["GET", "HEAD", "TRACE", "OPTIONS"]:
+                params = parse.parse_qs(path.query)
+
+                for param in list(params.keys()):
+                    params[param] = params[param][0]
+
+                self.callHandler(path.path, params)
+                if "Content-Type" in self.headers and self.headers["Content-Type"] != "multipart/form-data":
+                    contentLen = int(self.headers.get("content-length"))
+                    contentType = self.headers["Content-Type"]
+
+                    if contentType in ["application/json", "text/json", "application/x-json"]:
+                        reqBody = self.rfile.read(contentLen).decode("utf-8")
+                        args = json.JSONDecoder().decode(reqBody)
+
+                    elif contentType == "application/x-www-form-urlencoded":
+                        reqBody = self.rfile.read(contentLen).decode("utf-8")
+                        args = parse.parse_qs(reqBody)
+
+                    elif contentType == "multipart/form-data":
+                        f = cgi.FieldStorage(fp=self.rfile,
+                                             headers=self.headers,
+                                             environ={
+                                                 "REQUEST_METHOD": "POST",
+                                                 "CONTENT_TYPE": contentType,
+                                             },
+                                             encoding="utf-8")
+                        if "file" not in f:
+                            route.post_error(self, route.Cause.INVALID_FIELD_UNK)
+                            return
+                        args = {}
+                        for fs in f.keys():
+                            args[fs] = f.getvalue(fs)
+
+                    else:
+                        args = self.rfile.read(contentLen).decode("utf-8")
+
+                    self.callHandler(path.path, args)
+            else:
+                route.post_error(self, route.Cause.NOT_ALLOWED_OPERATION)
+                return
+        except:
+            self.printStacktrace(*sys.exc_info())
+
+
 
     def handle_one_request(self):
         try:
@@ -206,14 +208,7 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if not self.parse_request():
                 return
-            mname = 'do_' + self.command
-            if not hasattr(self, mname):
-                self.send_error(
-                    400,
-                    "Unsupported method (%r)" % self.command)
-                return
-            method = getattr(self, mname)
-            method()
+            self.handleSwitch()
             if not self.wfile.closed:
                 self.wfile.flush()
                 self.wfile.close()
