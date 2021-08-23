@@ -115,6 +115,12 @@ class Method(Enum):
     def values():
         return [e.value for e in Method]
 
+def auth_require(func):
+    def context(handler, path, params):
+        if handler.do_auth():
+            return
+        func(handler, path, params)
+    return context
 
 def EndPoint(method, require_args=None, no_auth=False):
     def _a(func):
