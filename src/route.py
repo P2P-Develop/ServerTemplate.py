@@ -100,6 +100,7 @@ def finish(handler):
     handler.finish()
     handler.connection.close()
 
+
 class Method(Enum):
     GET = "GET"
     POST = "POST"
@@ -115,12 +116,15 @@ class Method(Enum):
     def values():
         return [e.value for e in Method]
 
+
 def require_auth(func):
     def context(handler, path, params):
         if handler.do_auth():
             return
         func(handler, path, params)
+
     return context
+
 
 def EndPoint(method, require_args=None, no_auth=False):
     def _a(func):
@@ -137,8 +141,11 @@ def EndPoint(method, require_args=None, no_auth=False):
                 "require_args": require_args if require_args is None else [],
                 "no_auth": no_auth
             })
+
         return _b
+
     return _a
+
 
 __all__ = [
     "write", "Cause", "validate", "missing", "success", "post_error", "finish", "Method", "EndPoint"
