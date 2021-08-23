@@ -22,6 +22,15 @@ def params():
             "about": "Input text.",
             "required": True,
             "type": "string"
+        },
+        {
+            "name": "count",
+            "in": "query",
+            "about": "Count.",
+            "required": True,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
         }
     ]
 
