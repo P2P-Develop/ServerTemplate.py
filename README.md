@@ -23,3 +23,93 @@ You need to setup ServerTemplate.py.
 ## Configuration
 
 - `system.bind.port` (REQUIRED) - Server listening port.
+
+
+## Features
+
+- Static routes with json or text files.
+- Dynamic routes using .py files.
+- Route to the directory index.
+- Perfect stack trace.
+  <details>
+    <summary>Example</summary>
+
+  ```python
+  [00:00:00 WARN] Unexpected exception while handling client request resource /example
+        at server.handler.try_module_handle(handler.py:133): handler.handle(self, path, params)
+        at route._context(route.py:194): if missing(handler, params, args):
+        at route.missing(route.py:43): diff = search_missing(fields, require)
+  Caused by: AttributeError: 'tuple' object has no attribute 'remove'
+        at route.search_missing(route.py:66): require.remove(key)
+  ```
+
+  </details>
+
+- Argument validation with annotation.
+  <details>
+    <summary>Example</summary>
+  
+    ```python
+    import route
+
+    @route.require_args("text", "count")  # Check if the required arguments are given.
+    @route.validate_arg("text", "str", max_value=32)  # Check if the text is shorter than 32 characters.
+    @route.validate_arg("count", "int", min_value=1, max_value=100)
+    # Check if the count is integer and
+    # count is greater than 1 and less than 100
+
+    def handle(handler, path, params):
+        q = params["text"] * params["count"]
+        route.success(handler, 200, q)
+
+    ```
+  </details>
+- Multi-threaded routing.
+- Document definition in code.
+  <details>
+    <summary>Example</summary>
+  
+    ```python
+    def params():
+        return [
+            {
+                "name": "text",
+                "in": "query",
+                "about": "Input text.",
+                "required": True,
+                "type": "string"
+            },
+            {
+                "name": "count",
+                "in": "query",
+                "about": "Count.",
+                "required": True,
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+            }
+        ]
+
+    def genDoc():
+        return {
+            "get": {
+                "about": "Outputs the specified text.",
+                "returns": "application/json",
+                200: {
+                "about": "Successful response.",
+                "example": {
+                    "success": True,
+                    "result": "Hello, world!"
+                }
+            }
+        }
+    }
+    ```
+  
+  </summary>
+  
+- Automatic generation of HTML documents for Swagger UI
+  ```console
+  $ py -3 src/gendoc.py
+  ```
+- Customizable commands
