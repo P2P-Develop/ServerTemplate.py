@@ -13,25 +13,6 @@ import asyncio
 import inspect
 
 
-def grand(sv, path, data):
-    p = "public/html" + path
-    if os.path.exists(p):
-        with open(p, "rb") as obj:
-            sv.send_response(200)
-            sv.end_headers()
-            sv.wfile.write(obj.read())
-        return True
-    return False
-
-
-def text(path, replaces):
-    with open("public/html" + path, "r", encoding="utf-8") as r:
-        txt = r.read()
-    for replace in replaces:
-        txt = txt.replace("%%" + replace[0] + "%%", replace[1])
-    return
-
-
 def write(sv, code, txt):
     sv.send_response(code)
     sv.send_header("Content-Type", "application/json")
@@ -48,22 +29,23 @@ class Handler(BaseHTTPRequestHandler):
         self.config = self.instance.config
         super().__init__(request, client_address, server)
 
-    def parse_thread_name(self, name):
+    @staticmethod
+    def parse_thread_name(name):
         name = str.strip(name, "ThreadPoolExecutor-")
         splittext = str.split(name, "_")
 
         return f"thread-{splittext[0]}-{splittext[1]}"
 
-    def getLogName(self):
+    def get_log_name(self):
         return self.parse_thread_name(threading.current_thread().getName())
 
     def log_message(self, format, *args):
-        self.logger.info(self.getLogName(), self.address_string() +
+        self.logger.info(self.get_log_name(), self.address_string() +
                          " -> " + format % args)
 
     def do_auth(self):
         if self.path == "/docs.html":
-            self.callHandler("/docs.html", None)
+            self.call_handler("/docs.html", None)
 
             return True
 
@@ -90,7 +72,7 @@ class Handler(BaseHTTPRequestHandler):
             return True
         return False
 
-    def callHandler(self, path: str, params):
+    def call_handler(self, path: str, params):
 
         if ".." in path:
             route.post_error(self, route.Cause.EP_NOTFOUND)
@@ -102,10 +84,10 @@ class Handler(BaseHTTPRequestHandler):
         if p.endswith("."):
             p = p[:-1]
 
-        if self.tryModuleHandle("server.handler_root" + p, path, params):
+        if self.try_module_handle("server.handler_root" + p, path, params):
             return
 
-        if self.tryModuleHandle("server.handler_root" + p + "._", path, params):
+        if self.try_module_handle("server.handler_root" + p + "._", path, params):
             return
 
         try:
@@ -138,10 +120,10 @@ class Handler(BaseHTTPRequestHandler):
 
             route.post_error(self, route.Cause.EP_NOTFOUND)
         except Exception as e:
-            self.printStacktrace(*sys.exc_info())
+            self.print_stack_trace(*sys.exc_info())
             pass
 
-    def tryModuleHandle(self, mod_name, path, params):
+    def try_module_handle(self, mod_name, path, params):
         handler = import_module(mod_name)
 
         if inspect.iscoroutinefunction(handler.handle):
@@ -149,7 +131,7 @@ class Handler(BaseHTTPRequestHandler):
         else:
             handler.handle(self, path, params)
 
-    def handleSwitch(self):
+    def handle_switch(self):
         try:
             path = parse.urlparse(self.path)
             if self.command in ["GET", "HEAD", "TRACE", "OPTIONS"]:
@@ -158,25 +140,25 @@ class Handler(BaseHTTPRequestHandler):
                 for param in list(params.keys()):
                     params[param] = params[param][0]
 
-                self.callHandler(path.path, params)
+                self.call_handler(path.path, params)
                 if "Content-Type" in self.headers and self.headers["Content-Type"] != "multipart/form-data":
-                    contentLen = int(self.headers.get("content-length"))
-                    contentType = self.headers["Content-Type"]
+                    content_len = int(self.headers.get("content-length"))
+                    content_type = self.headers["Content-Type"]
 
-                    if contentType in ["application/json", "text/json", "application/x-json"]:
-                        reqBody = self.rfile.read(contentLen).decode("utf-8")
-                        args = json.JSONDecoder().decode(reqBody)
+                    if content_type in ["application/json", "text/json", "application/x-json"]:
+                        req_body = self.rfile.read(content_len).decode("utf-8")
+                        args = json.JSONDecoder().decode(req_body)
 
-                    elif contentType == "application/x-www-form-urlencoded":
-                        reqBody = self.rfile.read(contentLen).decode("utf-8")
-                        args = parse.parse_qs(reqBody)
+                    elif content_type == "application/x-www-form-urlencoded":
+                        req_body = self.rfile.read(content_len).decode("utf-8")
+                        args = parse.parse_qs(req_body)
 
-                    elif contentType == "multipart/form-data":
+                    elif content_type == "multipart/form-data":
                         f = cgi.FieldStorage(fp=self.rfile,
                                              headers=self.headers,
                                              environ={
                                                  "REQUEST_METHOD": "POST",
-                                                 "CONTENT_TYPE": contentType,
+                                                 "CONTENT_TYPE": content_type,
                                              },
                                              encoding="utf-8")
                         if "file" not in f:
@@ -187,14 +169,14 @@ class Handler(BaseHTTPRequestHandler):
                             args[fs] = f.getvalue(fs)
 
                     else:
-                        args = self.rfile.read(contentLen).decode("utf-8")
+                        args = self.rfile.read(content_len).decode("utf-8")
 
-                    self.callHandler(path.path, args)
+                    self.call_handler(path.path, args)
             else:
                 route.post_error(self, route.Cause.NOT_ALLOWED_OPERATION)
                 return
         except:
-            self.printStacktrace(*sys.exc_info())
+            self.print_stack_trace(*sys.exc_info())
 
     def handle_one_request(self):
         try:
@@ -210,12 +192,12 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if not self.parse_request():
                 return
-            self.handleSwitch()
+            self.handle_switch()
             if not self.wfile.closed:
                 self.wfile.flush()
                 self.wfile.close()
         except Exception as e:
-            self.printStacktrace(*sys.exc_info())
+            self.print_stack_trace(*sys.exc_info())
             self.close_connection = True
             return
 
@@ -225,7 +207,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Server", "gws")
         self.send_header("Connection", "close")
 
-    def printStacktrace(self, etype, exception, trace):
+    def print_stack_trace(self, etype, exception, trace):
         tb = traceback.TracebackException(etype, exception, trace)
 
         st = f"Unexpected exception while handling client request resource {self.path}\n"
@@ -236,15 +218,15 @@ class Handler(BaseHTTPRequestHandler):
             stack: traceback.FrameSummary
             if "handler_root" in stack.filename and not flag:
                 flag = True
-                st = st + "Caused by: " + self.getClassChain(etype) + ": " + str(tb) + "\n"
-            st = st + "        at " + self.normalizeFileName(stack.filename) + "." + stack.name \
+                st = st + "Caused by: " + self.get_class_chain(etype) + ": " + str(tb) + "\n"
+            st = st + "        at " + self.normalize_file_name(stack.filename) + "." + stack.name \
                  + "(" + os.path.basename(stack.filename) + ":" + str(stack.lineno) \
                  + "): " + stack.line + "\n"
 
         self.logger.warn(self.parse_thread_name(threading.current_thread().getName()), st)
 
     @staticmethod
-    def normalizeFileName(path: str):
+    def normalize_file_name(path: str):
         das = path.split("src")
         del das[0]
         da = "".join(das)
@@ -252,7 +234,7 @@ class Handler(BaseHTTPRequestHandler):
         return da[1:-3]
 
     @staticmethod
-    def getClassChain(clazz):
+    def get_class_chain(clazz):
         mod = clazz.__module__
         if mod == "builtins":
             return clazz.__qualname__
