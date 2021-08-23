@@ -124,12 +124,16 @@ class Handler(BaseHTTPRequestHandler):
             pass
 
     def try_module_handle(self, mod_name, path, params):
-        handler = import_module(mod_name)
+        try:
+            handler = import_module(mod_name)
 
-        if inspect.iscoroutinefunction(handler.handle):
-            asyncio.run(handler.handle(self, path, params))
-        else:
-            handler.handle(self, path, params)
+            if inspect.iscoroutinefunction(handler.handle):
+                asyncio.run(handler.handle(self, path, params))
+            else:
+                handler.handle(self, path, params)
+            return True
+        except (ModuleNotFoundError, AttributeError):
+            return False
 
     def handle_switch(self):
         try:
