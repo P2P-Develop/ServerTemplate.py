@@ -132,7 +132,12 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 handler.handle(self, path, params)
             return True
-        except (ModuleNotFoundError, AttributeError):
+        except ModuleNotFoundError:
+            return False
+        except:
+            if sys.exc_info()[1].args[0].startswith('module \'server.handler_root\' has no attribute \'handle\''):
+                return False
+            self.print_stack_trace(*sys.exc_info())
             return False
 
     def handle_switch(self):
@@ -222,12 +227,25 @@ class Handler(BaseHTTPRequestHandler):
             stack: traceback.FrameSummary
             if "handler_root" in stack.filename and not flag:
                 flag = True
-                st = st + "Caused by: " + self.get_class_chain(etype) + ": " + str(tb) + "\n"
-            st = st + "        at " + self.normalize_file_name(stack.filename) + "." + stack.name \
-                 + "(" + os.path.basename(stack.filename) + ":" + str(stack.lineno) \
-                 + "): " + stack.line + "\n"
+                st += "Caused by: " + self.get_class_chain(etype) + ": " + str(tb) + "\n"
+            st += self.build_trace(stack)
+
+        if not flag:
+            st = f"Unexpected exception while handling client request resource {self.path}\n"
+            for stack in tb.stack[:len(tb.stack) - 1]:
+                st += self.build_trace(stack)
+            st += "Caused by: " + self.get_class_chain(etype) + ": " + str(tb) + "\n"
+            stack = tb.stack[len(tb.stack) - 1]
+            st += self.build_trace(stack)
+
 
         self.logger.warn(self.parse_thread_name(threading.current_thread().getName()), st)
+
+    @staticmethod
+    def build_trace(stack):
+        return "        at " + Handler.normalize_file_name(stack.filename) + "." + stack.name \
+               + "(" + os.path.basename(stack.filename) + ":" + str(stack.lineno) \
+               + "): " + stack.line + "\n"
 
     @staticmethod
     def normalize_file_name(path: str):
