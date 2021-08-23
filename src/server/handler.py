@@ -57,24 +57,24 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_auth(self):
         if "Authorization" not in self.headers:
-            result.qe(self, result.Cause.AUTH_REQUIRED)
+            result.post_error(self, result.Cause.AUTH_REQUIRED)
 
             return False
 
         auth = self.headers["Authorization"].split(" ")
 
         if len(auth) != 2:
-            result.qe(self, result.Cause.AUTH_REQUIRED)
+            result.post_error(self, result.Cause.AUTH_REQUIRED)
 
             return False
 
         if str(auth[0]).lower() != "token":
-            result.qe(self, result.Cause.AUTH_REQUIRED)
+            result.post_error(self, result.Cause.AUTH_REQUIRED)
 
             return False
 
         if not self.token.validate(auth[1]):
-            result.qe(self, result.Cause.AUTH_REQUIRED)
+            result.post_error(self, result.Cause.AUTH_REQUIRED)
 
             return False
         return True
@@ -103,12 +103,12 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
-            if self.authorization():
+            if self.do_auth():
                 return
 
             path = parse.urlparse(self.path)
             if "Content-Type" not in self.headers:
-                result.qe(self, result.Cause.NOT_ALLOWED_OPERATION)
+                result.post_error(self, result.Cause.NOT_ALLOWED_OPERATION)
 
                 return
 
@@ -128,7 +128,7 @@ class Handler(BaseHTTPRequestHandler):
                                      },
                                      encoding="utf-8")
                 if "file" not in f:
-                    result.qe(self, result.Cause.INVALID_FIELD_UNK)
+                    result.post_error(self, result.Cause.INVALID_FIELD_UNK)
                     return
                 params = {}
                 for fs in f.keys():
@@ -146,7 +146,7 @@ class Handler(BaseHTTPRequestHandler):
     def handleRequest(self, path, params):
 
         if ".." in path.path:
-            result.qe(self, result.Cause.EP_NOTFOUND)
+            result.post_error(self, result.Cause.EP_NOTFOUND)
 
             return
 
@@ -182,4 +182,4 @@ class Handler(BaseHTTPRequestHandler):
                         self.end_headers()
                         self.wfile.write(r.read())
                         return
-                result.qe(self, result.Cause.EP_NOTFOUND)
+                result.post_error(self, result.Cause.EP_NOTFOUND)

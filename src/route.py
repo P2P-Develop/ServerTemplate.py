@@ -1,5 +1,7 @@
 import json
-
+import os
+from enum import Enum
+from server import ep
 
 def encode(amfs):
     return json.JSONEncoder().encode(amfs)
@@ -37,7 +39,7 @@ def validate(handler, fname, value, must):
 
 
 def missing(handler, fields, require):
-    diff = searchMissing(fields, require)
+    diff = search_missing(fields, require)
     if len(diff) is 0:
         return False
     write(handler, 400, error(Cause.MISSING_FIELD, Cause.MISSING_FIELD[2]
@@ -53,11 +55,11 @@ def success(handler, code, obj):
     }))
 
 
-def qe(handler, cause):
+def post_error(handler, cause):
     write(handler, cause[0], error(cause))
 
 
-def searchMissing(fields, require):
+def search_missing(fields, require):
     for key in fields.keys():
         if key in require:
             require.remove(key)
@@ -91,3 +93,51 @@ def wssuccess():
     return encode({
         "success": True
     })
+
+
+def finish(handler):
+    handler.finish()
+    handler.connection.close()
+
+
+class Method(Enum):
+    GET = "GET"
+    POST = "POST"
+    PUT = "PUT"
+    DELETE = "DELETE"
+    PATCH = "PATCH"
+
+    HEAD = "HEAD"
+    CONNECT = "CONNECT"
+    OPTIONS = "OPTIONS"
+
+    @staticmethod
+    def values():
+        return [e.value for e in Method]
+
+
+class EndPoint:
+    def __init__(self):
+        pass
+
+    def __call__(self, func):
+        def _b(method, require_args=None, no_auth=False):
+            if type(method) == Method:
+                method = method.value.upper()
+            else:
+                method = str(method.upper())
+
+            ep.loader.signals.append({
+                "mod": __file__.replace(os.sep, "/")[4:-3],
+                "method": method,
+                "func": func.__name__,
+                "require_args": require_args if require_args is None else [],
+                "no_auth": no_auth
+            })
+
+        return _b
+
+
+__all__ = [
+    "write", "Cause", "validate", "missing", "success", "post_error", "finish", "Method", "EndPoint"
+]
