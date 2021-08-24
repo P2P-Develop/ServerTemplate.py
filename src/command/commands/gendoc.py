@@ -1,8 +1,9 @@
-import gendoc
-from command.command import CommandEntry
+import os
 import shutil
 import webbrowser
-import os
+
+import gendoc
+from command.command import CommandEntry
 
 
 class CommandDoc(CommandEntry):

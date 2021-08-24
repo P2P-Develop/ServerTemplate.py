@@ -1,7 +1,7 @@
+import hashlib
 import os
 import secrets
 import string
-import hashlib
 
 
 class Token:

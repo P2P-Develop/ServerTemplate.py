@@ -1,5 +1,5 @@
-import pathlib
 import importlib
+import pathlib
 
 
 class Argument:
@@ -30,7 +30,9 @@ class EndPoint:
         self.no_auth = no_auth
         self.require_args = require_args if require_args is None else []
 
+
 global loader
+
 
 class Loader:
     def __init__(self):
@@ -53,5 +55,3 @@ class Loader:
             function = s["func"]
             require_args = s["require_args"]
             no_auth = s["no_auth"]
-
-

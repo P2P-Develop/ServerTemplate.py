@@ -1,7 +1,5 @@
 import json
-import os
 from enum import Enum
-from server import ep
 
 
 def encode(amfs):
@@ -185,8 +183,11 @@ def validate_arg(name, arg_type, min_value=-1, max_value=-1, missing_ok=False, d
                     params[name] = val
 
             func(handler, path, params)
+
         return _context
+
     return context
+
 
 def require_args(*args):
     def context(func):
@@ -194,7 +195,9 @@ def require_args(*args):
             if missing(handler, params, list(args)):
                 return
             func(handler, path, params)
+
         return _context
+
     return context
 
 

@@ -1,9 +1,10 @@
+import json
 import os
 import pathlib
-import yaml
-from importlib import import_module
 import re
-import json
+from importlib import import_module
+
+import yaml
 
 _HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -354,6 +355,7 @@ if __name__ == "__main__":
     processStep(steps)
     docPath = os.path.abspath("docs.html")
     print(f"\n\nDocument generated successfully: {docPath}")
+
 
 def gen():
     processStep(steps)

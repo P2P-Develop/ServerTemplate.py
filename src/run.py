@@ -1,10 +1,11 @@
-from threading import Thread
-import yaml
-from os import path
 import shutil
-from utils.logging import Logger
+from os import path
+
+import yaml
+
 from command.executor import CommandExecutor
 from server import server
+from utils.logging import Logger
 from utils.token import Token
 
 

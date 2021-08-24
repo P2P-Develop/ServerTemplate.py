@@ -75,9 +75,9 @@ class DataBase:
 
         cu = self.connection.cursor()
         cu.execute(prepare(base, data))
-        #if len(data) is 0:
+        # if len(data) is 0:
         #    cu.execute(base)
-        #else:
+        # else:
         #    cu.execute(base, data)
         return cu
 

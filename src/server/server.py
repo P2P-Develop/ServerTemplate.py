@@ -1,11 +1,10 @@
+import socket
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from socketserver import ThreadingTCPServer
+
 from run import Main
 from server.handler import Handler
-import socket
-from ssl import wrap_socket
-import threading
-
 from utils.logging import Logger
 from utils.token import Token
 
@@ -32,6 +31,7 @@ class Server(ThreadingTCPServer, object):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind(self.server_address)
 
+
 def startServer(instance, port, logger, token):
     with Server(("", port), Handler, 4) as server:
         server.logger = logger
@@ -49,8 +49,7 @@ def startServer(instance, port, logger, token):
 
 def bind(port, instance, logger, token):
     thread = threading.Thread(target=startServer, args=(
-             instance, port, logger,  token))
+        instance, port, logger, token))
     thread.daemon = True
     thread.start()
     logger.info("server", "Listening on 0.0.0.0:" + str(port))
-

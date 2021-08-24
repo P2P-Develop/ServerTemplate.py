@@ -1,16 +1,17 @@
-from http.server import BaseHTTPRequestHandler
-import os
-import route
-import urllib.parse as parse
-import sys
-import threading
-from importlib import import_module
+import asyncio
+import cgi
+import inspect
 import json
 import mimetypes
-import cgi
+import os
+import sys
+import threading
 import traceback
-import asyncio
-import inspect
+import urllib.parse as parse
+from http.server import BaseHTTPRequestHandler
+from importlib import import_module
+
+import route
 
 
 def write(sv, code, txt):
@@ -237,7 +238,6 @@ class Handler(BaseHTTPRequestHandler):
             st += "Caused by: " + self.get_class_chain(etype) + ": " + str(tb) + "\n"
             stack = tb.stack[len(tb.stack) - 1]
             st += self.build_trace(stack)
-
 
         self.logger.warn(self.parse_thread_name(threading.current_thread().getName()), st)
 
