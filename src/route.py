@@ -17,6 +17,8 @@ class Cause:
     AUTH_REQUIRED = [401, "AUTHORIZATION_REQUIRED", "Authorization required."]
     NOT_ALLOWED_OPERATION = [
         405, "OPERATION_NOT_ALLOWED", "Operation not allowed."]
+    UNSUPPORTED_OPERATION = [
+        400, "OPERATION_UNSUPPORTED", "Operation not supported."]
     FORBIDDEN = [403, "FORBIDDEN", "Access denied."]
     EP_NOTFOUND = [404, "E_NOTFOUND", "Endpoint not found."]
     GONE = [410, "GONE", "Resource has already gone."]

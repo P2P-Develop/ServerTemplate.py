@@ -125,18 +125,33 @@ class Handler(BaseHTTPRequestHandler):
             pass
 
     def try_module_handle(self, mod_name, path, params):
+        # TODO: Handling with annotation
+        # TODO: Caching handler
         try:
             handler = import_module(mod_name)
 
-            if inspect.iscoroutinefunction(handler.handle):
-                asyncio.run(handler.handle(self, path, params))
+            mname = 'do_' + self.command
+            if not hasattr(self, mname):
+                if hasattr(handler, "handle"):
+                    method = getattr(handler, "handle")
+                    if inspect.iscoroutinefunction(method):
+                        asyncio.run(method(self, path, params))
+                    else:
+                        method(self, path, params)
+                    return True
+                return False
+            method = getattr(self, mname)
+
+            if inspect.iscoroutinefunction(method):
+                asyncio.run(method(self, path, params))
             else:
-                handler.handle(self, path, params)
+                method(self, path, params)
             return True
         except ModuleNotFoundError:
             return False
         except:
-            if sys.exc_info()[1].args[0].startswith('module \'server.handler_root\' has no attribute \'handle\''):
+            if type(sys.exc_info()[1]) == TypeError and \
+                sys.exc_info()[1].args[0].startswith('module \'server.handler_root\' has no attribute \'handle\''):
                 return False
             self.print_stack_trace(*sys.exc_info())
             return False
@@ -151,7 +166,8 @@ class Handler(BaseHTTPRequestHandler):
                     params[param] = params[param][0]
 
                 self.call_handler(path.path, params)
-                if "Content-Type" in self.headers and self.headers["Content-Type"] != "multipart/form-data":
+            else:
+                if "Content-Type" in self.headers:
                     content_len = int(self.headers.get("content-length"))
                     content_type = self.headers["Content-Type"]
 
@@ -163,7 +179,7 @@ class Handler(BaseHTTPRequestHandler):
                         req_body = self.rfile.read(content_len).decode("utf-8")
                         args = parse.parse_qs(req_body)
 
-                    elif content_type == "multipart/form-data":
+                    elif content_type.startswith("multipart/form-data"):
                         f = cgi.FieldStorage(fp=self.rfile,
                                              headers=self.headers,
                                              environ={
@@ -171,9 +187,6 @@ class Handler(BaseHTTPRequestHandler):
                                                  "CONTENT_TYPE": content_type,
                                              },
                                              encoding="utf-8")
-                        if "file" not in f:
-                            route.post_error(self, route.Cause.INVALID_FIELD_UNK)
-                            return
                         args = {}
                         for fs in f.keys():
                             args[fs] = f.getvalue(fs)
@@ -182,9 +195,8 @@ class Handler(BaseHTTPRequestHandler):
                         args = self.rfile.read(content_len).decode("utf-8")
 
                     self.call_handler(path.path, args)
-            else:
-                route.post_error(self, route.Cause.NOT_ALLOWED_OPERATION)
-                return
+                else:
+                    self.call_handler(path.path, {})
         except:
             self.print_stack_trace(*sys.exc_info())
 
