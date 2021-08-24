@@ -45,7 +45,7 @@ You need to setup ServerTemplate.py.
     ```
 
     In this example, you can make a route of /api/add-user.
-  </summary>
+  </details>
 - Show stack trace in logs.
   <details>
     <summary>Example</summary>
