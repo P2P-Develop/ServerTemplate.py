@@ -1,6 +1,4 @@
-import asyncio
 import cgi
-import inspect
 import json
 import mimetypes
 import os
@@ -9,8 +7,8 @@ import threading
 import traceback
 import urllib.parse as parse
 from http.server import BaseHTTPRequestHandler
-from importlib import import_module
 
+import server.ep as ep
 import route
 
 
@@ -80,15 +78,7 @@ class Handler(BaseHTTPRequestHandler):
 
             return
 
-        p = path.replace("/", ".")
-
-        if p.endswith("."):
-            p = p[:-1]
-
-        if self.try_module_handle("server.handler_root" + p, path, params):
-            return
-
-        if self.try_module_handle("server.handler_root" + p + "._", path, params):
+        if self.dynamic_handle(path, params):
             return
 
         try:
@@ -124,48 +114,26 @@ class Handler(BaseHTTPRequestHandler):
             self.print_stack_trace(*sys.exc_info())
             pass
 
-    def try_module_handle(self, mod_name, path, params):
-        # TODO: Handling with annotation <- Yorosiku
-        # TODO: Caching handler
-        try:
-            handler = import_module(mod_name)
+    def dynamic_handle(self, path, params):
+        endpoint = ep.loader.get_endpoint(self.command, path)
 
-            mname = 'do_' + self.command
-            if not hasattr(self, mname):
-                if hasattr(handler, "handle"):
-                    method = getattr(handler, "handle")
-                    if inspect.iscoroutinefunction(method):
-                        asyncio.run(method(self, path, params))
-                    else:
-                        method(self, path, params)
-                    return True
-                return False
-            method = getattr(self, mname)
+        if endpoint is None:
+            return False
 
-            if inspect.iscoroutinefunction(method):
-                asyncio.run(method(self, path, params))
-            else:
-                method(self, path, params)
-            return True
-        except ModuleNotFoundError:
-            return False
-        except:
-            if type(sys.exc_info()[1]) == TypeError and \
-                sys.exc_info()[1].args[0].startswith('module \'server.handler_root\' has no attribute \'handle\''):
-                return False
-            self.print_stack_trace(*sys.exc_info())
-            return False
+        endpoint.handle(self, params)
+
+        return True
 
     def handle_switch(self):
         try:
             path = parse.urlparse(self.path)
+            queries = parse.parse_qs(path.query)
+            for param in list(queries.keys()):
+                queries[param] = queries[param][0]
+
             if self.command in ["GET", "HEAD", "TRACE", "OPTIONS"]:
-                params = parse.parse_qs(path.query)
 
-                for param in list(params.keys()):
-                    params[param] = params[param][0]
-
-                self.call_handler(path.path, params)
+                self.call_handler(path.path, queries)
             else:
                 if "Content-Type" in self.headers:
                     content_len = int(self.headers.get("content-length"))
@@ -194,7 +162,8 @@ class Handler(BaseHTTPRequestHandler):
                     else:
                         args = self.rfile.read(content_len).decode("utf-8")
 
-                    self.call_handler(path.path, args)
+
+                    self.call_handler(path.path, dict(queries, args))
                 else:
                     self.call_handler(path.path, {})
         except:

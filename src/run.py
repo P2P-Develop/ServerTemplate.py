@@ -2,7 +2,7 @@ import shutil
 from os import path
 
 import yaml
-
+from server import ep
 from command.executor import CommandExecutor
 from server import server
 from utils.logging import Logger
@@ -65,7 +65,8 @@ class Main:
         server.bind(int(config["system"]["bind"]["port"]),
                     self, self.log, token)
         self.log.info("main", "Ready")
-
+        ep.loader = ep.EPManager()
+        ep.loader.load("src/server/handler_root/")
         while True:
             self.console()
 

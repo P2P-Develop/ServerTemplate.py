@@ -1,6 +1,7 @@
 import json
+import os
 from enum import Enum
-
+from server import ep
 
 def encode(amfs):
     return json.JSONEncoder().encode(amfs)
@@ -103,14 +104,16 @@ def finish(handler):
 
 class Method(Enum):
     GET = "GET"
+    HEAD = "HEAD"
+    TRACE = "TRACE"
+    OPTIONS = "OPTIONS"
+    CONNECT = "CONNECT"
+
     POST = "POST"
     PUT = "PUT"
     DELETE = "DELETE"
     PATCH = "PATCH"
 
-    HEAD = "HEAD"
-    CONNECT = "CONNECT"
-    OPTIONS = "OPTIONS"
 
     @staticmethod
     def values():
@@ -123,96 +126,36 @@ def quick_invalid(handler, name, message):
                               .replace("%1", message)))
 
 
-def validate_arg(name, arg_type, min_value=-1, max_value=-1, missing_ok=False, do_cast=True, *must_be):
-    if arg_type not in ["str", "string", "bool", "boolean", "number", "int", "double", "decimal", "float"]:
-        raise ValueError("arg_type is must be " +
-                         ", ".join(["str", "string", "bool", "boolean", "number", "int", "double", "decimal", "float"]))
+def http(method, require_auth=True, args=()):
+    def _context(handler):
+        path = os.path.relpath(handler.__globals__["__file__"], "src/server/handler_root")
 
-    def context(func):
-        def _context(handler, path, params):
-            if name not in params and not missing_ok:
-                raise ValueError(f"Parameter '{name}' is not in parameters. "
-                                 "Set missing_ok to True, or use @route.require_args annotation.")
+        path = path.replace(os.sep, "/")
 
-            value = params[name]
+        pp = 0
 
-            if "str" in arg_type:
-                if len(must_be) is not 0 and value not in must_be:
-                    quick_invalid(handler, name, ", ".join(must_be))
-                    return
+        for arg in args:
+            if arg.arg_in == "path" and "__" not in path:
+                raise ValueError("Some args have a path specified, but the path does not have __.")
+            if arg.arg_in == "path":
+                pp += 1
 
-                if min_value is not -1 and len(value) < min_value:
-                    quick_invalid(handler, name, f"at least {min_value} character")
-                    return
+        if pp >= 2:
+            raise ValueError("You cannot have more than one path parameter.")
 
-                if max_value is not -1 and len(value) > max_value:
-                    quick_invalid(handler, name, f"less than {max_value} character")
-                    return
-                if do_cast:
-                    params[name] = str(value)
+        ep.loader.signals.append({
+            "method": method,
+            "func": handler,
+            "path": path,
+            "require_auth": require_auth,
+            "args": tuple(args)
+        })
+        return handler
 
-            elif "bool" in arg_type:
-                if value not in ("true", "false") + must_be:
-                    quick_invalid(handler, name, " or ".join(("true", "false") + must_be))
-                    return
-
-                if do_cast:
-                    params[name] = bool(value)
-
-            else:
-                val = None
-                try:
-                    if "int" in arg_type or arg_type == "number":
-                        val = int(value)
-                    else:
-                        val = float(value)
-                except ValueError:
-                    quick_invalid(handler, name, arg_type)
-
-                if len(must_be) is not 0 and val not in must_be:
-                    quick_invalid(handler, name, ", ".join(must_be))
-                    return
-
-                if min_value is not -1 and val < min_value:
-                    quick_invalid(handler, name, f"at least {min_value}")
-                    return
-
-                if max_value is not -1 and val > max_value:
-                    quick_invalid(handler, name, f"less than {max_value}")
-                    return
-
-                if do_cast:
-                    params[name] = val
-
-            func(handler, path, params)
-
-        return _context
-
-    return context
-
-
-def require_args(*args):
-    def context(func):
-        def _context(handler, path, params):
-            if missing(handler, params, list(args)):
-                return
-            func(handler, path, params)
-
-        return _context
-
-    return context
-
-
-def require_auth(func):
-    def context(handler, path, params):
-        if handler.do_auth():
-            return
-        func(handler, path, params)
-
-    return context
+    return _context
 
 
 __all__ = [
     "write", "Cause", "validate", "missing", "success", "post_error",
-    "finish", "Method", "require_args", "require_auth", "validate_arg"
+    "finish", "Method", "http", "quick_invalid"
 ]

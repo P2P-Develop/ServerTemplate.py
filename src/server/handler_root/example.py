@@ -3,8 +3,8 @@ import route
 
 # /example
 
-@route.require_auth  # This endpoint requires authorization.
-def handle(handler, path, params):
+
+def handle(handler, params):
     route.success(handler, 200, "It's working!")
 
 
