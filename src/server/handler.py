@@ -125,7 +125,7 @@ class Handler(BaseHTTPRequestHandler):
             pass
 
     def try_module_handle(self, mod_name, path, params):
-        # TODO: Handling with annotation
+        # TODO: Handling with annotation <- Yorosiku
         # TODO: Caching handler
         try:
             handler = import_module(mod_name)
