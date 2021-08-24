@@ -28,9 +28,25 @@ You need to setup ServerTemplate.py.
 ## Features
 
 - Static routes with json or text files.
-- Dynamic routes using .py files.
-- Route to the directory index.
-- Perfect stack trace.
+- Dynamic routes with directory tree and .py files.
+  <details>
+    <summary>Example</summary>
+  
+    ```
+      /
+      ├── _.py <- this is index file.
+      ├── api
+      │   ├── add-user.py
+      │   └── get-users.py
+      ├── articles
+      │   └── 2021-08-25
+      │       └── _.py
+      └── example.py
+    ```
+
+    In this example, you can make a route of /api/add-user.
+  </summary>
+- Show stack trace in logs.
   <details>
     <summary>Example</summary>
 
