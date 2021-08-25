@@ -120,6 +120,22 @@ class Handler(BaseHTTPRequestHandler):
         if endpoint is None:
             return False
 
+
+        if endpoint.path_arg:
+            if not path.endswith("/"):
+                path += "/"
+            pointer = 0
+            mbr = 0
+            for arg in endpoint.args:
+                if arg.arg_in != "path":
+                    continue
+                pointer = endpoint.route_path.find("__", pointer)
+                slash = path.find("/", pointer) + mbr
+                params[arg.name] = path[pointer:slash]
+
+                mbr = slash - pointer
+
+
         endpoint.handle(self, params)
 
         return True

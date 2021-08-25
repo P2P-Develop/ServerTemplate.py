@@ -129,12 +129,17 @@ def quick_invalid(handler, name, message):
 def http(method, require_auth=True, args=()):
     def _context(handler):
         path = os.path.relpath(handler.__globals__["__file__"], "src/server/handler_root")
-
         path = path.replace(os.sep, "/")
-
         pp = 0
 
-        for arg in args:
+        if type(args) == list:
+            arg3 = list(args)
+        elif type(args) != tuple:
+            arg3 = (args,)
+        else:
+            arg3 = args
+
+        for arg in arg3:
             if arg.arg_in == "path" and "__" not in path:
                 raise ValueError("Some args have a path specified, but the path does not have __.")
             if arg.arg_in == "path":
@@ -148,7 +153,7 @@ def http(method, require_auth=True, args=()):
             "func": handler,
             "path": path,
             "require_auth": require_auth,
-            "args": tuple(args)
+            "args": arg3
         })
         return handler
 

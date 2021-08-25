@@ -104,13 +104,15 @@ class EndPoint:
                  rel_path: str,
                  handler,
                  auth_required: bool = True,
-                 args: list = None):
+                 args: list = None,
+                 path_arg: bool = False):
         self.method = method
         self.route_path = route_path
         self.rel_path = rel_path
         self.handler = handler
         self.auth_required = auth_required
         self.args = () if args is None else args
+        self.path_arg = path_arg
 
     def handle(self, handler, params):
         if self.auth_required and handler.do_auth():
@@ -200,19 +202,26 @@ class EPManager:
                 else:
                     rt = rt[:-1]
 
+            if not rt.startswith("/"):
+                rt = "/" + rt
+
             if rt in self.index and method in self.index[rt]:
                 return
 
-            if method.upper() in ["GET", "HEAD", "TRACE", "OPTIONS"]:
-                for arg in args:
-                    if arg.arg_in == "body":
-                        raise TypeError("This method does not get a request body.")
-
             if rt not in self.index:
                 self.index[rt] = []
+
+            paths = False
+
+            for arg in args:
+                if arg.arg_in == "path":
+                    paths = True
+                elif arg.arg_in == "body" and method.upper() in ["GET", "HEAD", "TRACE", "OPTIONS"]:
+                    raise TypeError("This method does not get a request body.")
+
             self.index_array.append(method + " " + rt)
             self.index[rt].append(method)
-            self.endpoints.append(EndPoint(method, rt, path, function, auth, args))
+            self.endpoints.append(EndPoint(method, rt, path, function, auth, args, paths))
 
     def get_endpoint(self, method, path):
         if path in self.index and method in self.index[path]:
@@ -225,10 +234,10 @@ class EPManager:
 
         for a in parts:
             dxt = path.replace(a, "__", 1)
-            if (method + dxt) in self.index_array:
+            if (method + " " + dxt) in self.index_array:
                 return self.endpoints[self.index_array.index(method + " " + dxt)]
             if dxt.endswith("/"):
-                if (method + dxt[:-1]) in self.index_array:
+                if (method + " " + dxt[:-1]) in self.index_array:
                     return self.endpoints[self.index_array.index(method + " " + dxt[:-1])]
 
         return None
