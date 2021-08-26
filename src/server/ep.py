@@ -171,9 +171,8 @@ global loader
 class EPManager:
     def __init__(self):
         self.endpoints = []
-        self.index = {}
-        self.index_array = []
         self.signals = []
+        self.index_tree = {}
 
     def load(self, root):
         for file in pathlib.Path(root).glob("**/*.py"):
@@ -196,48 +195,71 @@ class EPManager:
             if rt.endswith(".py"):
                 rt = rt[:-3]
 
-            if rt.endswith("_") and not rt.endswith("__"):
-                if rt == "_":
-                    rt = "/"
+            cursor = self.index_tree
+            slt = rt.split("/")
+            qt_paths = 0
+
+            for i, part in enumerate(slt, 1):
+                if part in cursor:
+                    if i == len(slt):
+                        if method in cursor[part]:
+                            raise ValueError("Duplicate endpoint found:" + rt)
                 else:
-                    rt = rt[:-1]
+                    cursor[part] = {}
 
-            if not rt.startswith("/"):
-                rt = "/" + rt
+                cursor = cursor[part]
 
-            if rt in self.index and method in self.index[rt]:
-                return
-
-            if rt not in self.index:
-                self.index[rt] = []
-
-            paths = False
+                if part == "__":
+                    qt_paths += 1
+            paths = 0
 
             for arg in args:
                 if arg.arg_in == "path":
-                    paths = True
+                    paths += 1
                 elif arg.arg_in == "body" and method.upper() in ["GET", "HEAD", "TRACE", "OPTIONS"]:
                     raise TypeError("This method does not get a request body.")
 
-            self.index_array.append(method + " " + rt)
-            self.index[rt].append(method)
-            self.endpoints.append(EndPoint(method, rt, path, function, auth, args, paths))
+            if paths != qt_paths:
+                raise ValueError("Path argument count mismatch.")
 
-    def get_endpoint(self, method, path):
-        if path in self.index and method in self.index[path]:
-            return self.endpoints[self.index_array.index(method + " " + path)]
-        if path.endswith("/"):
-            if path[:-1] in self.index_array:
-                return self.endpoints[self.index_array.index(method + " " + path[:-1])]
+            cursor[method] = EndPoint(method, rt, path, function, auth, args, bool(paths))
 
-        parts = path.split("/")
+    def get_endpoint(self, method, path, params=None):
 
-        for a in parts:
-            dxt = path.replace(a, "__", 1)
-            if (method + " " + dxt) in self.index_array:
-                return self.endpoints[self.index_array.index(method + " " + dxt)]
-            if dxt.endswith("/"):
-                if (method + " " + dxt[:-1]) in self.index_array:
-                    return self.endpoints[self.index_array.index(method + " " + dxt[:-1])]
+        cursor = self.index_tree
+
+        if path == "/":
+            path = "_"
+
+        if path.startswith("/"):
+            path = path[1:]
+
+        slt = path.split("/")
+        args = []
+
+        for i, part in enumerate(slt, 1):
+            if part in cursor:
+                cursor = cursor[part]
+                continue
+
+            if "__" in cursor:
+                args.append(part)
+                cursor = cursor["__"]
+                continue
+
+            return None
+
+        if "_" in cursor:
+            cursor = cursor["_"]
+
+        if method in cursor:
+            result = cursor[method]
+            if result.path_arg:
+                count = 0
+                for arg in result.args:
+                    if arg.arg_in == "path":
+                        params[arg.name] = args[count]
+                        count += 1
+            return result
 
         return None

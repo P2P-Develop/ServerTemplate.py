@@ -3,6 +3,7 @@ import os
 from enum import Enum
 from server import ep
 
+
 def encode(amfs):
     return json.JSONEncoder().encode(amfs)
 
@@ -114,7 +115,6 @@ class Method(Enum):
     DELETE = "DELETE"
     PATCH = "PATCH"
 
-
     @staticmethod
     def values():
         return [e.value for e in Method]
@@ -144,9 +144,6 @@ def http(method, require_auth=True, args=()):
                 raise ValueError("Some args have a path specified, but the path does not have __.")
             if arg.arg_in == "path":
                 pp += 1
-
-        if pp >= 2:
-            raise ValueError("You cannot have more than one path parameter.")
 
         ep.loader.signals.append({
             "method": method,
