@@ -8,8 +8,8 @@ import traceback
 import urllib.parse as parse
 from http.server import BaseHTTPRequestHandler
 
-import server.ep as ep
 import route
+import server.ep as ep
 
 
 def write(sv, code, txt):
@@ -161,7 +161,6 @@ class Handler(BaseHTTPRequestHandler):
 
                     else:
                         args = self.rfile.read(content_len).decode("utf-8")
-
 
                     self.call_handler(path.path, dict(queries, args))
                 else:

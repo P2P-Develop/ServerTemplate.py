@@ -2,8 +2,9 @@ import shutil
 from os import path
 
 import yaml
-from server import ep
+
 from command.executor import CommandExecutor
+from server import ep
 from server import server
 from utils.logging import Logger
 from utils.token import Token

@@ -8,7 +8,7 @@ from server import ep
 @route.http("GET", args=(
     ep.Argument("text", "str", "query", maximum=32),
     ep.Argument("count", "int", "query", minimum=1, maximum=100)),
-    require_auth=False)
+            require_auth=False)
 def on_get(handler, params):
     q = params["text"] * params["count"]
     route.success(handler, 200, q)
