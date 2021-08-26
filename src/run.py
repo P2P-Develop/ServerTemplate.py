@@ -53,8 +53,6 @@ class Main:
         if not self.validateConfig(config):
             self.die(1)
 
-        self.log.info("main", "Connecting...")
-
         token = Token("token.sig")
         if not token.load():
             self.log.warn("main", "Token not found. ")
@@ -63,11 +61,13 @@ class Main:
             self.log.warn(
                 "auth", "Make sure to copy this token now. You won't be able to see it again.")
 
+        self.log.info("main", "Binding...")
         server.bind(int(config["system"]["bind"]["port"]),
                     self, self.log, token)
-        self.log.info("main", "Ready")
         ep.loader = ep.EPManager()
+        self.log.info("main", "Loading endpoints...")
         ep.loader.load("src/server/handler_root/")
+        self.log.info("main", "Ready")
         while True:
             self.console()
 
@@ -79,8 +79,12 @@ class Main:
     def bindCommands(self):
         from command.commands.general import CommandExit
         from command.commands.gendoc import CommandDoc
+        from command.commands.reload import CommandReload
+        from command.commands.load import CommandLoad
         main.cmd.register(CommandExit(self))
         main.cmd.register(CommandDoc(self))
+        main.cmd.register(CommandReload(self))
+        main.cmd.register(CommandLoad(self))
 
 
 if __name__ == "__main__":

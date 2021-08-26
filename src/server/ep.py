@@ -171,9 +171,9 @@ global loader
 
 class EPManager:
     def __init__(self):
-        self.endpoints = []
         self.signals = []
         self.index_tree = {}
+        self.known_source = []
 
     def load(self, root):
         for file in pathlib.Path(root).glob("**/*.py"):
@@ -182,6 +182,8 @@ class EPManager:
                 importlib.import_module(m)
             except Exception as e:
                 pass
+        if root not in self.known_source:
+            self.known_source.append(root)
         self._make_cache()
 
     def _make_cache(self):
@@ -264,3 +266,9 @@ class EPManager:
             return result
 
         return None
+
+    def reload(self):
+        self.signals.clear()
+        self.index_tree.clear()
+        for source in self.known_source:
+            self.load(source)
