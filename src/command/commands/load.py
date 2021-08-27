@@ -1,7 +1,7 @@
 import os
 
-from command.command import CommandEntry
 import route
+from command.command import CommandEntry
 
 
 class CommandLoad(CommandEntry):

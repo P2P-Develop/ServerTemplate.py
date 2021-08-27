@@ -10,6 +10,7 @@ from http.server import BaseHTTPRequestHandler
 
 import route
 
+
 def write(sv, code, txt):
     sv.send_response(code)
     sv.send_header("Content-Type", "application/json")

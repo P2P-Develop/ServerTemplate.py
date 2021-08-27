@@ -165,6 +165,7 @@ __all__ = [
 
 global loader
 
+
 class EPManager:
     def __init__(self):
         self.signals = []
@@ -332,8 +333,8 @@ class EndPoint:
 
         if len(missing) is not 0:
             write(handler, 400, error(Cause.MISSING_FIELD, Cause.MISSING_FIELD[2]
-                                                  .replace("%0", str(len(missing)))
-                                                  .replace("%1", ", ".join(missing))))
+                                      .replace("%0", str(len(missing)))
+                                      .replace("%1", ", ".join(missing))))
             return False
         return True
 
