@@ -25,14 +25,14 @@ def params():
     return [
         {
             "name": "text",
-            "in": "query",
+            "in": "body",
             "about": "Input text.",
             "required": True,
             "type": "string"
         },
         {
             "name": "count",
-            "in": "query",
+            "in": "body",
             "about": "Count.",
             "required": True,
             "type": "integer",
@@ -54,5 +54,16 @@ def docs():
                     "result": "Hello, world!"
                 }
             }
-        }
+        },
+        "post": {
+            "about": "Outputs the specified text.",
+            "returns": "application/json",
+            200: {
+                "about": "Successful response.",
+                "example": {
+                    "success": True,
+                    "result": "Hello, world!"
+                }
+            }
+        },
     }

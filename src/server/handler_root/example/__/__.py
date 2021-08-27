@@ -17,14 +17,14 @@ def params():
     return [
         {
             "name": "text",
-            "in": "query",
+            "in": "path",
             "about": "Input text.",
             "required": True,
             "type": "string"
         },
         {
             "name": "count",
-            "in": "query",
+            "in": "path",
             "about": "Count.",
             "required": True,
             "type": "integer",
