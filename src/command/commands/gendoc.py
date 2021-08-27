@@ -1,6 +1,7 @@
 import os
 import shutil
 import webbrowser
+import route
 
 import gendoc
 from command.command import CommandEntry
@@ -37,14 +38,15 @@ class CommandDoc(CommandEntry):
 
     def open(self):
         self.logger.info("main", "Opening...")
-        webbrowser.open("http://127.0.0.1:" + str(self.instance.config["system"]["bind"]["port"]) + "/docs.html")
+        webbrowser.open("http://127.0.0.1:" + str(self.instance.config["system"]["bind"]["port"]) + "/docs")
 
     def deploy(self):
         self.logger.info("main", "Deploying...")
-        if os.path.exists("docs.html"):
-            if not os.path.exists("resources/resource"):
-                os.mkdir("resources/resource")
-            shutil.move("docs.html", "resources/resource/docs.html")
+        if os.path.exists("resources/docs.py"):
+            shutil.copy("resources/docs.py", "src/server/handler_root/docs.py")
+            route.loader.reload()
+        else:
+            self.logger.error("main", "Deploy failed successfully: Logic not found.")
 
     def gen(self):
         gendoc.gen()

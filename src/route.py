@@ -9,11 +9,11 @@ def encode(amfs):
     return json.JSONEncoder().encode(amfs)
 
 
-def write(sv, code, txt):
-    sv.send_response(code)
-    sv.send_header("Content-Type", "application/json")
-    sv.end_headers()
-    sv.wfile.write(txt.encode())
+def write(handler, code, txt, content_type="application/json"):
+    handler.send_response(code)
+    handler.send_header("Content-Type", content_type)
+    handler.end_headers()
+    handler.wfile.write(txt.encode())
 
 
 class Cause:
