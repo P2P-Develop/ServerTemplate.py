@@ -270,7 +270,7 @@ def loadAsSwagger(obj):
         if fName.endswith(".py"):
             moduleName = fName[4:-3].replace("/", ".")
             module = import_module(moduleName)
-            if "genDoc" not in dir(module):
+            if "docs" not in dir(module):
                 print(f"No docs were found in '{moduleName}'.")
                 continue
             print(f"Importing docs from endpoint module '{moduleName}'...")
