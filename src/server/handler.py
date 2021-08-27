@@ -136,6 +136,8 @@ class Handler(BaseHTTPRequestHandler):
                     if content_type in ["application/json", "text/json", "application/x-json"]:
                         req_body = self.rfile.read(content_len).decode("utf-8")
                         args = json.JSONDecoder().decode(req_body)
+                        if type(args) != dict:
+                            args = {}
 
                     elif content_type == "application/x-www-form-urlencoded":
                         req_body = self.rfile.read(content_len).decode("utf-8")
