@@ -32,7 +32,7 @@ class Server(ThreadingTCPServer, object):
         self.socket.bind(self.server_address)
 
 
-def startServer(instance, port, logger, token):
+def start_server(instance, port, logger, token):
     with Server(("", port), Handler, 4) as server:
         server.logger = logger
         server.token = token
@@ -48,7 +48,7 @@ def startServer(instance, port, logger, token):
 
 
 def bind(port, instance, logger, token):
-    thread = threading.Thread(target=startServer, args=(
+    thread = threading.Thread(target=start_server, args=(
         instance, port, logger, token))
     thread.daemon = True
     thread.start()
