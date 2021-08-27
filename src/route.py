@@ -175,14 +175,22 @@ class EPManager:
 
     def load(self, root):
         for file in pathlib.Path(root).glob("**/*.py"):
-            try:
-                m = ".".join(file.parts)[4:-3]
-                importlib.import_module(m)
-            except Exception as e:
-                pass
+            self.load_single(file, False)
         if root not in self.known_source:
             self.known_source.append(root)
         self._make_cache()
+
+    def load_single(self, path, build_cache=True):
+        try:
+            m = ".".join(pathlib.Path(path).parts)[4:-3]
+            importlib.import_module(m)
+        except Exception as e:
+            pass
+        if build_cache:
+            root = os.path.dirname(path)
+            if root not in self.known_source:
+                self.known_source.append(root)
+            self._make_cache()
 
     def _make_cache(self):
         for s in self.signals:
