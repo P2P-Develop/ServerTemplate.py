@@ -1,5 +1,5 @@
 from command.command import CommandEntry
-from server import ep
+import route
 
 
 class CommandReload(CommandEntry):
@@ -11,5 +11,5 @@ class CommandReload(CommandEntry):
 
     def exec(self, args):
         self.logger.info("main", "Reloading...")
-        ep.loader.reload()
+        route.loader.reload()
         self.logger.info("main", "Reload completed.")

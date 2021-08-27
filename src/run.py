@@ -3,8 +3,8 @@ from os import path
 
 import yaml
 
+import route
 from command.executor import CommandExecutor
-from server import ep
 from server import server
 from utils.logging import Logger
 from utils.token import Token
@@ -64,9 +64,9 @@ class Main:
         self.log.info("main", "Binding...")
         server.bind(int(config["system"]["bind"]["port"]),
                     self, self.log, token)
-        ep.loader = ep.EPManager()
+        route.loader = route.EPManager()
         self.log.info("main", "Loading endpoints...")
-        ep.loader.load("src/server/handler_root/")
+        route.loader.load("src/server/handler_root/")
         self.log.info("main", "Ready")
         while True:
             self.console()

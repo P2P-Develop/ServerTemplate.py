@@ -64,12 +64,12 @@ You need to setup ServerTemplate.py.
 - Argument validation with annotation.
   <details>
     <summary>Example</summary>
-  
+
     ```python
 
-    @route.http("GET", args=(
-        ep.Argument("text", "str", "query", maximum=32),
-        ep.Argument("count", "int", "query", minimum=1, maximum=100)),
+import route    @route.http("GET", args=(
+        route.Argument("text", "str", "query", maximum=32),
+        route.Argument("count", "int", "query", minimum=1, maximum=100)),
     require_auth=False)
     def handle(handler, path, params):
         q = params["text"] * params["count"]

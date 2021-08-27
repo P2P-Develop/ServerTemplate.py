@@ -1,13 +1,11 @@
 import route
-from server import ep
-
 
 # In this example, the string specified by the text parameter will be repeated the specified number of times.
 
 
 @route.http("GET", args=(
-    ep.Argument("text", "str", "query", maximum=32),
-    ep.Argument("count", "int", "query", minimum=1, maximum=100)),
+    route.Argument("text", "str", "query", maximum=32),
+    route.Argument("count", "int", "query", minimum=1, maximum=100)),
             require_auth=False)
 def on_get(handler, params):
     q = params["text"] * params["count"]
@@ -15,8 +13,8 @@ def on_get(handler, params):
 
 
 @route.http("POST", args=(
-    ep.Argument("text", "str", "body", maximum=32),
-    ep.Argument("count", "int", "body", minimum=1, maximum=100)))
+    route.Argument("text", "str", "body", maximum=32),
+    route.Argument("count", "int", "body", minimum=1, maximum=100)))
 def on_post(handler, params):
     q = params["text"] * params["count"]
     route.success(handler, 200, q)

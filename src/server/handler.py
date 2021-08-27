@@ -9,8 +9,6 @@ import urllib.parse as parse
 from http.server import BaseHTTPRequestHandler
 
 import route
-import server.ep as ep
-
 
 def write(sv, code, txt):
     sv.send_response(code)
@@ -115,7 +113,7 @@ class Handler(BaseHTTPRequestHandler):
             pass
 
     def dynamic_handle(self, path, params):
-        endpoint = ep.loader.get_endpoint(self.command, path, params)
+        endpoint = route.loader.get_endpoint(self.command, path, params)
 
         if endpoint is None:
             return False
