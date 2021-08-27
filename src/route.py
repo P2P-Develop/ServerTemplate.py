@@ -59,8 +59,8 @@ def success(handler, code, obj):
     }))
 
 
-def post_error(handler, cause):
-    write(handler, cause[0], error(cause))
+def post_error(handler, cause, message=None):
+    write(handler, cause[0], error(cause, message))
 
 
 def search_missing(fields, require):
@@ -288,22 +288,28 @@ class EndPoint:
         self.args = () if args is None else args
         self.path_arg = path_arg
 
-    def handle(self, handler, params):
+    def handle(self, handler, params, queries, path_param):
         if self.auth_required and handler.do_auth():
             return
 
-        if not self.validate_arg(handler, params):
+        if not self.validate_arg(handler, params, queries, path_param):
             return
 
         self.handler(handler, params)
 
-    def validate_arg(self, handler, params):
+    def validate_arg(self, handler, params, queries, path_param):
 
         missing = []
 
         for arg in self.args:
             arg: Argument
-            code = arg.validate(params)
+            if arg.arg_in == "query":
+                code = arg.validate(queries)
+            elif arg.arg_in == "body":
+                code = arg.validate(params)
+            elif arg.arg_in == "path":
+                code = arg.validate(path_param)
+
             if code == -1:
                 missing.append(arg.name)
             elif code == 1:
@@ -330,6 +336,13 @@ class EndPoint:
                 else:
                     quick_invalid(handler, arg.name, f"less than {arg.max}")
                     return False
+
+            if arg.arg_in == "query":
+                val = arg.norm_type(queries[arg.name]) if arg.auto_cast else queries[arg.name]
+                params[arg.name] = val
+            elif arg.arg_in == "path":
+                val = arg.norm_type(path_param[arg.name]) if arg.auto_cast else path_param[arg.name]
+                params[arg.name] = val
 
         if len(missing) is not 0:
             write(handler, 400, error(Cause.MISSING_FIELD, Cause.MISSING_FIELD[2]
@@ -369,7 +382,7 @@ class Argument:
             return "string" if val is None else str(val)
         elif "bool" in self.type:
             return "bool" if val is None else bool(val)
-        elif self.type is "number" and "int" in self.type:
+        elif self.type is "number" or "int" in self.type:
             return "integer" if val is None else int(val)
         else:
             return "number" if val is None else float(val)

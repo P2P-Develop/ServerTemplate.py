@@ -15,7 +15,7 @@ def on_get(handler, params):
 
 @route.http("POST", args=(
     route.Argument("text", "str", "body", maximum=32),
-    route.Argument("count", "int", "body", minimum=1, maximum=100)))
+    route.Argument("count", "int", "body", minimum=1, maximum=100)), require_auth=False)
 def on_post(handler, params):
     q = params["text"] * params["count"]
     route.success(handler, 200, q)

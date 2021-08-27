@@ -70,14 +70,14 @@ class Handler(BaseHTTPRequestHandler):
             return True
         return False
 
-    def call_handler(self, path: str, params):
+    def call_handler(self, path: str, params, queries):
 
         if ".." in path:
             route.post_error(self, route.Cause.EP_NOTFOUND)
 
             return
 
-        if self.dynamic_handle(path, params):
+        if self.dynamic_handle(path, params, queries):
             return
 
         try:
@@ -113,26 +113,26 @@ class Handler(BaseHTTPRequestHandler):
             self.print_stack_trace(*sys.exc_info())
             pass
 
-    def dynamic_handle(self, path, params):
-        endpoint = route.loader.get_endpoint(self.command, path, params)
+    def dynamic_handle(self, path, params, queries):
+        path_param = {}
+
+        endpoint = route.loader.get_endpoint(self.command, path, path_param)
 
         if endpoint is None:
             return False
 
-        endpoint.handle(self, params)
+        endpoint.handle(self, params, queries, path_param)
 
         return True
 
     def handle_switch(self):
         try:
             path = parse.urlparse(self.path)
-            queries = parse.parse_qs(path.query)
-            for param in list(queries.keys()):
-                queries[param] = queries[param][0]
+            queries = dict(parse.parse_qsl(path.query))
 
             if self.command in ["GET", "HEAD", "TRACE", "OPTIONS"]:
 
-                self.call_handler(path.path, queries)
+                self.call_handler(path.path, {}, queries)
             else:
                 if "Content-Type" in self.headers:
                     content_len = int(self.headers.get("content-length"))
@@ -144,7 +144,7 @@ class Handler(BaseHTTPRequestHandler):
 
                     elif content_type == "application/x-www-form-urlencoded":
                         req_body = self.rfile.read(content_len).decode("utf-8")
-                        args = parse.parse_qs(req_body)
+                        args = dict(parse.parse_qsl(req_body))
 
                     elif content_type.startswith("multipart/form-data"):
                         f = cgi.FieldStorage(fp=self.rfile,
@@ -159,11 +159,14 @@ class Handler(BaseHTTPRequestHandler):
                             args[fs] = f.getvalue(fs)
 
                     else:
-                        args = self.rfile.read(content_len).decode("utf-8")
+                        route.quick_invalid(self, "Content-Type header", "valid header")
+                        return
+                        # args = self.rfile.read(content_len).decode("utf-8")
 
-                    self.call_handler(path.path, dict(queries, args))
+                    self.call_handler(path.path, args, queries)
                 else:
-                    self.call_handler(path.path, {})
+                    route.post_error(self, route.Cause.MISSING_FIELD, "Content-Type header is required.")
+                    return
         except:
             self.print_stack_trace(*sys.exc_info())
 
