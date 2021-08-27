@@ -42,11 +42,6 @@ class Handler(BaseHTTPRequestHandler):
                          " -> " + format % args)
 
     def do_auth(self):
-        if self.path == "/docs.html":
-            self.call_handler("/docs.html", None)
-
-            return True
-
         if "Authorization" not in self.headers:
             route.post_error(self, route.Cause.AUTH_REQUIRED)
 
