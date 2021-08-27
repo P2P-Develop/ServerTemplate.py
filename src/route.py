@@ -24,6 +24,7 @@ class Cause:
         400, "OPERATION_UNSUPPORTED", "Operation not supported."]
     FORBIDDEN = [403, "FORBIDDEN", "Access denied."]
     EP_NOTFOUND = [404, "E_NOTFOUND", "Endpoint not found."]
+    RESOURCE_NOTFOUND = [404, "RESOURCE_NOTFOUND", "Resource not found."]
     GONE = [410, "GONE", "Resource has already gone."]
     MISSING_FIELD = [400, "MISSING_FIELD", "Missing %0 field(s): [%1]"]
     INVALID_FIELD = [400, "INVALID_FIELD",
