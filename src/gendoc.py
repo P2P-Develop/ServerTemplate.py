@@ -6,41 +6,32 @@ import uuid
 import route
 import yaml
 
-_HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>%%NAME%%</title>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui.css" >
-    <style>
-        [class~=swagger-ui] [class~=info] p,[class~=swagger-ui] [class~=tab] li,[class~=swagger-ui] [class~=info] li,[class~=swagger-ui] a[class~=nostyle]{color:#ccc !important;}html{box-sizing:border-box;}html{overflow:-moz-scrollbars-vertical;}html{overflow-y:scroll;}[class~=swagger-ui] select,.swagger-ui .scheme-container,[class~=swagger-ui] [class~=info] [class~=title]{background-color:#222;}*:before,*,*:after{box-sizing:inherit;}body{margin-left:0;}[class~=swagger-ui] [class~=info] [class~=title],body,[class~=swagger-ui] select,.swagger-ui .scheme-container{color:#ccc;}body{margin-bottom:0;}[class~=swagger-ui] [class~=opblock] [class~=opblock-section-header] label,[class~=swagger-ui] [class~=opblock-description-wrapper] p,[class~=swagger-ui] [class~=parameter__deprecated],[class~=swagger-ui],[class~=swagger-ui] [class~=responses-inner] h4,[class~=swagger-ui] [class~=opblock-title_normal] p,[class~=swagger-ui] [class~=opblock] [class~=opblock-section-header] h4,[class~=swagger-ui] textarea,[class~=swagger-ui] [class~=info] [class~=base-url],[class~=swagger-ui] [class~=btn],[class~=swagger-ui] label,[class~=swagger-ui] [class~=parameter__name],[class~=swagger-ui] [class~=parameter__type],[class~=swagger-ui] [class~=parameter__in],[class~=swagger-ui] [class~=response-col_status],.swagger-ui .opblock .opblock-summary-description,[class~=swagger-ui] [class~=info] table,[class~=swagger-ui] [class~=info] [class~=title],.swagger-ui .responses-inner h5,[class~=swagger-ui] table thead tr th,[class~=swagger-ui] [class~=opblock-external-docs-wrapper] p,[class~=swagger-ui] table thead tr td{color:#ccc !important;}[class~=swagger-ui] [class~=opblock] [class~=opblock-section-header]{background-color:transparent;}body{margin-right:0;}body{margin-top:0;}body{background:#fafafa;}body{background-color:#222;}
-    </style>
-</head>
-<body>
-<div id="swagger-ui"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui-bundle.js"> </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui-standalone-preset.js"> </script>
-<script>
-    window.onload = function() {
-        window.ui = SwaggerUIBundle({
-            spec: "",
-            dom_id: '#swagger-ui',
-            deepLinking: true,
-            presets: [
-                SwaggerUIBundle.presets.apis,
-                SwaggerUIStandalonePreset
-            ],
-            plugins: [
-                SwaggerUIBundle.plugins.DownloadUrl
-            ]
-        })
-    }
-</script>
-</body>
-</html>
-"""
+_HTML_TEMPLATE = """<!DOCTYPE html> <html lang="ja"> <head> <meta charset="UTF-8"> <title>%%NAME%%</title> <link
+href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,
+700" rel="stylesheet"> <link rel="stylesheet" type="text/css"
+href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui.css" > <style> [class~=swagger-ui] [
+class~=info] p,[class~=swagger-ui] [class~=tab] li,[class~=swagger-ui] [class~=info] li,[class~=swagger-ui] a[
+class~=nostyle]{color:#ccc !important;}html{box-sizing:border-box;}html{overflow:-moz-scrollbars-vertical;}html{
+overflow-y:scroll;}[class~=swagger-ui] select,.swagger-ui .scheme-container,[class~=swagger-ui] [class~=info] [
+class~=title]{background-color:#222;}*:before,*,*:after{box-sizing:inherit;}body{margin-left:0;}[class~=swagger-ui] [
+class~=info] [class~=title],body,[class~=swagger-ui] select,.swagger-ui .scheme-container{color:#ccc;}body{
+margin-bottom:0;}[class~=swagger-ui] [class~=opblock] [class~=opblock-section-header] label,[class~=swagger-ui] [
+class~=opblock-description-wrapper] p,[class~=swagger-ui] [class~=parameter__deprecated],[class~=swagger-ui],
+[class~=swagger-ui] [class~=responses-inner] h4,[class~=swagger-ui] [class~=opblock-title_normal] p,
+[class~=swagger-ui] [class~=opblock] [class~=opblock-section-header] h4,[class~=swagger-ui] textarea,
+[class~=swagger-ui] [class~=info] [class~=base-url],[class~=swagger-ui] [class~=btn],[class~=swagger-ui] label,
+[class~=swagger-ui] [class~=parameter__name],[class~=swagger-ui] [class~=parameter__type],[class~=swagger-ui] [
+class~=parameter__in],[class~=swagger-ui] [class~=response-col_status],.swagger-ui .opblock
+.opblock-summary-description,[class~=swagger-ui] [class~=info] table,[class~=swagger-ui] [class~=info] [
+class~=title],.swagger-ui .responses-inner h5,[class~=swagger-ui] table thead tr th,[class~=swagger-ui] [
+class~=opblock-external-docs-wrapper] p,[class~=swagger-ui] table thead tr td{color:#ccc !important;}[
+class~=swagger-ui] [class~=opblock] [class~=opblock-section-header]{background-color:transparent;}body{
+margin-right:0;}body{margin-top:0;}body{background:#fafafa;}body{background-color:#222;} </style> </head> <body> <div
+id="swagger-ui"></div> <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui-bundle.js">
+</script> <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui-standalone-preset.js">
+</script> <script> window.onload = function() { window.ui = SwaggerUIBundle({ spec: "", dom_id: '#swagger-ui',
+deepLinking: true, presets: [ SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset ], plugins: [
+SwaggerUIBundle.plugins.DownloadUrl ] }) } </script> </body> </html> """
 
 _SWAGGER_TEMPLATE = """
 swagger: "2.0"
@@ -63,11 +54,11 @@ security:
 """
 
 
-def printf(str):
-    print(str, end="")
+def printf(string):
+    print(string, end="")
 
 
-def processStep(target):
+def process_step(target):
     c = 0
     obj = target
     for step in steps:
@@ -79,7 +70,7 @@ def processStep(target):
 global swagger
 
 
-def whatsTypeOfThisObj(obj):
+def whats_type_of_this_object(obj):
     typ3 = type(obj)
     if typ3 is dict or typ3 is tuple:
         return "object"
@@ -104,7 +95,7 @@ def clean(obj: dict):
         w.write(abss.replace("\n", "").replace("    ", ""))
 
 
-def genHTML(obj: dict):
+def generate_html(obj: dict):
     print("Generating docs html...")
     rz = json.dumps(obj)
     with open("docs.html", "w", encoding="utf-8") as w:
@@ -120,7 +111,7 @@ def save(obj: dict):
     return obj
 
 
-def buildSwagger(obj: dict):
+def build_swagger(obj: dict):
     print("Building swagger file...")
     print("Initializing swagger...")
     swagger["paths"] = {}
@@ -130,7 +121,7 @@ def buildSwagger(obj: dict):
     return swagger
 
 
-def normalizeParams(obj: dict):
+def normalize_params(obj: dict):
     for gz in obj.items():
         for method in list(gz[1].items()):
             print(f"Normalizing parameters of '{gz[0]} - {method[0]}'...")
@@ -155,32 +146,32 @@ def normalizeParams(obj: dict):
 def b(ex):
     properties = {}
     for zz in ex.items():
-        tz = whatsTypeOfThisObj(zz[1])
+        tz = whats_type_of_this_object(zz[1])
         if tz is "array":
 
-            atField = ""
+            a_t_field = ""
             for at in zz[1]:
-                fa = whatsTypeOfThisObj(at)
-                if atField != "" and atField != fa:
-                    atField = "object"
+                fa = whats_type_of_this_object(at)
+                if a_t_field != "" and a_t_field != fa:
+                    a_t_field = "object"
                     break
-                atField = fa
+                a_t_field = fa
 
-            if atField == "":
-                atField = "object"
+            if a_t_field == "":
+                a_t_field = "object"
 
             properties[zz[0]] = {
                 "type": tz,
                 "items": {
-                    "type": atField
+                    "type": a_t_field
                 }
             }
 
-            if atField == "object":
+            if a_t_field == "object":
                 i = 0
                 properties[zz[0]]["items"]["properties"] = {}
                 for hb in zz[1][0].items():
-                    ahx = whatsTypeOfThisObj(hb)
+                    ahx = whats_type_of_this_object(hb)
                     bz = {
                         "type": ahx,
                         "example": hb[0]
@@ -192,7 +183,7 @@ def b(ex):
                         properties[zz[0]]["items"]["properties"][hb[1]] = bz
                     i = i + 1
                     pass
-            elif atField is not None:
+            elif a_t_field is not None:
                 properties[zz[0]]["example"] = zz[1]
 
         elif tz is not None:
@@ -208,7 +199,7 @@ def b(ex):
     return properties
 
 
-def buildExample(obj: dict):
+def build_example(obj: dict):
     for bb in obj.items():
         for ep in bb[1].items():
             print(f"Building response schema of '{bb[0]}'...")
@@ -222,7 +213,7 @@ def buildExample(obj: dict):
                     continue
                 ex = a["example"]
                 schema = {}
-                typ3 = whatsTypeOfThisObj(ex)
+                typ3 = whats_type_of_this_object(ex)
                 schema["type"] = typ3
                 if typ3 == "object":
                     schema["properties"] = b(ex)
@@ -236,7 +227,7 @@ def buildExample(obj: dict):
     return obj
 
 
-def normalizeResponses(obj: dict):
+def normalize_responses(obj: dict):
     normalized = {}
 
     for docs in obj.items():
@@ -294,7 +285,7 @@ def docs():
 """
 
 
-def convertAnnotation(obj):
+def convert_annotation(obj):
     swaggers = {}
     for oj in obj.items():
         if type(oj[1]) != route.EndPoint:
@@ -417,7 +408,7 @@ def convertAnnotation(obj):
     return swaggers
 
 
-def loadAsSwagger(obj):
+def load_as_swagger(obj):
     swaggers = {}
     for file in obj:
         if type(file) == route.EndPoint:
@@ -448,7 +439,7 @@ def loadAsSwagger(obj):
     return tmp
 
 
-def loadAsModule(obj):
+def load_as_module(obj):
     if hasattr(route, "loader"):
         loader = route.loader
         loader.reload()
@@ -471,7 +462,7 @@ def loadAsModule(obj):
     return result
 
 
-def loadYaml(obj):
+def load_yaml(obj):
     global swagger
     printf("Loading template...")
     swagger = yaml.load(_SWAGGER_TEMPLATE, Loader=yaml.FullLoader)
@@ -502,25 +493,25 @@ def find(obj):
 
 steps = [
     find,
-    loadYaml,
-    loadAsModule,
-    loadAsSwagger,
-    convertAnnotation,
-    normalizeResponses,
-    buildExample,
-    normalizeParams,
-    buildSwagger,
+    load_yaml,
+    load_as_module,
+    load_as_swagger,
+    convert_annotation,
+    normalize_responses,
+    build_example,
+    normalize_params,
+    build_swagger,
     save,
-    genHTML,
+    generate_html,
     clean
 ]
 
 if __name__ == "__main__":
     print("Generating documents...")
-    processStep(steps)
+    process_step(steps)
     docPath = os.path.abspath("docs.html")
     print(f"\n\nDocument generated successfully: {docPath}")
 
 
 def gen():
-    processStep(steps)
+    process_step(steps)
