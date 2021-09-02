@@ -159,13 +159,11 @@ def whats_type_of_this_object(obj):
     return None
 
 
-def clean(obj: dict):
-    print("Cleaning...")
-    os.remove("docs/swagger.yml")
+def compress(obj: dict):
     print("Minimizing...")
     with open("docs.html", "r", encoding="utf-8") as r:
         abss = r.read()
-    with open("docs.html", "w", encoding="utf-8") as w:
+    with open("docs/docs.html", "w", encoding="utf-8") as w:
         w.write(abss.replace("\n", "").replace("    ", ""))
 
 
@@ -577,7 +575,7 @@ steps = [
     build_swagger,
     save,
     generate_html,
-    clean
+    compress
 ]
 
 if __name__ == "__main__":
