@@ -114,7 +114,7 @@ class Handler(BaseHTTPRequestHandler):
 
         ep = endpoint.loader.get_endpoint(self.command, path, path_param)
 
-        if endpoint is None:
+        if ep is None:
             return False
 
         ep.handle(self, params, queries, path_param)
