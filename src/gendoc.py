@@ -8,97 +8,32 @@ import endpoint
 import route
 import yaml
 
+import requests
+
 _HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <title>%%NAME%%</title>
-    <link href=
-        "https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700"
-    rel="stylesheet">
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui.css">
-    <style>
-        [class~=swagger-ui] [class~=info] p,[class~=swagger-ui] [class~=tab] li,[class~=swagger-ui] [class~=info] li,
-        [class~=swagger-ui] a[class~=nostyle]{
-            color:#ccc !important;
-        }
-        html{
-            box-sizing:border-box;
-        }
-        html{
-            overflow:-moz-scrollbars-vertical;
-        }
-        html{
-            overflow-y:scroll;
-        }
-        [class~=swagger-ui] select,.swagger-ui .scheme-container,[class~=swagger-ui] [class~=info] [class~=title]{
-            background-color:#222;
-        }
-        *:before,*,*:after{
-            box-sizing:inherit;
-        }
-        body{
-            margin-left:0;
-        }
-        [class~=swagger-ui] [class~=info] [class~=title],body,[class~=swagger-ui] select,.swagger-ui .scheme-container{
-            color:#ccc;
-        }
-        body{
-            margin-bottom:0;
-        }
-        [class~=swagger-ui] [class~=opblock] [class~=opblock-section-header] label,
-        [class~=swagger-ui] [class~=opblock-description-wrapper] p,[class~=swagger-ui] [class~=parameter__deprecated],
-        [class~=swagger-ui],[class~=swagger-ui] [class~=responses-inner] h4,
-        [class~=swagger-ui] [class~=opblock-title_normal] p,
-        [class~=swagger-ui] [class~=opblock] [class~=opblock-section-header] h4,[class~=swagger-ui] textarea,
-        [class~=swagger-ui] [class~=info] [class~=base-url],[class~=swagger-ui] [class~=btn],[class~=swagger-ui] label,
-        [class~=swagger-ui] [class~=parameter__name],[class~=swagger-ui] [class~=parameter__type],
-        [class~=swagger-ui] [class~=parameter__in],[class~=swagger-ui] [class~=response-col_status],
-        .swagger-ui .opblock .opblock-summary-description,[class~=swagger-ui] [class~=info] table,
-        [class~=swagger-ui] [class~=info] [class~=title],.swagger-ui .responses-inner h5,
-        [class~=swagger-ui] table thead tr th,[class~=swagger-ui] [class~=opblock-external-docs-wrapper] p,
-        [class~=swagger-ui] table thead tr td{
-            color:#ccc !important;
-        }
-        [class~=swagger-ui] [class~=opblock] [class~=opblock-section-header]{
-            background-color:transparent;
-        }
-        body{
-            margin-right:0;
-        }
-        body{
-            margin-top:0;
-        }
-        body{
-            background:#fafafa;
-        }
-        body{
-            background-color:#222;
-        }
-
-    </style>
 </head>
 <body>
-<div id="swagger-ui"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui-bundle.js"> </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui-standalone-preset.js"> </script>
+<div id="redoc"></div>
+<script src="https://cdn.jsdelivr.net/npm/redoc@2.0.0-alpha.17/bundles/redoc.standalone.js"> </script>
 <script>
-    window.onload = function() {
-        window.ui = SwaggerUIBundle({
-            spec: "",
-            dom_id: '#swagger-ui',
-            deepLinking: true,
-            presets: [
-                SwaggerUIBundle.presets.apis,
-                SwaggerUIStandalonePreset
-            ],
-            plugins: [
-                SwaggerUIBundle.plugins.DownloadUrl
-            ]
-        })
-    }
+    const redoc_data = {
+        "menu": {
+            "activeItemIdx": -1
+        },
+        "spec": {
+            "data": ""
+        },
+        "options": {
+            "disableSearch": true,
+            "hideDownloadButton": true
+        }
+    };
+    Redoc.hydrate(redoc_data, document.getElementById("redoc"));
 </script>
 </body>
 </html>
@@ -167,11 +102,26 @@ def compress():
         w.write(abss.replace("\n", "").replace("    ", ""))
 
 
-def generate_html(obj: dict):
+def generate_html(obj):
     print("Generating docs html...")
     rz = json.dumps(obj)
     with open("docs.html", "w", encoding="utf-8") as w:
         w.write(_HTML_TEMPLATE.replace("\"\"", rz).replace("%%NAME%%", obj["info"]["title"]))
+
+
+def convert_to_oas3(obj: dict):
+    print("Converting OpenAPI 2.0 to OpenAPI 3.0")
+
+    response = requests.post("https://mermade.org.uk/openapi-converter/api/v1/convert", {
+        "source": json.dumps(obj)
+    }, headers={
+        "Accept": "application/json"
+    })
+
+    if not str(response.status_code).startswith("2"):
+        raise ValueError("Server responses with " + str(response.status_code))
+
+    return json.loads(response.text)
 
 
 def save(obj: dict):
@@ -569,6 +519,7 @@ steps = [
     normalize_params,
     build_swagger,
     save,
+    convert_to_oas3,
     generate_html,
     compress
 ]
