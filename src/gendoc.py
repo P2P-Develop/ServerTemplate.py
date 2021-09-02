@@ -20,33 +20,16 @@ _HTML_TEMPLATE = """
     <link rel="stylesheet" type="text/css"
         href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui.css">
     <style>
-        [class~=swagger-ui] [class~=info] p,[class~=swagger-ui] [class~=tab] li,[class~=swagger-ui] [class~=info] li,
-        [class~=swagger-ui] a[class~=nostyle]{
-            color:#ccc !important;
-        }
         html{
             box-sizing:border-box;
-        }
-        html{
             overflow:-moz-scrollbars-vertical;
-        }
-        html{
             overflow-y:scroll;
         }
         [class~=swagger-ui] select,.swagger-ui .scheme-container,[class~=swagger-ui] [class~=info] [class~=title]{
-            background-color:#222;
+            background-color:#151515;
         }
         *:before,*,*:after{
             box-sizing:inherit;
-        }
-        body{
-            margin-left:0;
-        }
-        [class~=swagger-ui] [class~=info] [class~=title],body,[class~=swagger-ui] select,.swagger-ui .scheme-container{
-            color:#ccc;
-        }
-        body{
-            margin-bottom:0;
         }
         [class~=swagger-ui] [class~=opblock] [class~=opblock-section-header] label,
         [class~=swagger-ui] [class~=opblock-description-wrapper] p,[class~=swagger-ui] [class~=parameter__deprecated],
@@ -59,25 +42,62 @@ _HTML_TEMPLATE = """
         .swagger-ui .opblock .opblock-summary-description,[class~=swagger-ui] [class~=info] table,
         [class~=swagger-ui] [class~=info] [class~=title],.swagger-ui .responses-inner h5,
         [class~=swagger-ui] table thead tr th,[class~=swagger-ui] [class~=opblock-external-docs-wrapper] p,
-        [class~=swagger-ui] table thead tr td{
+        [class~=swagger-ui] table thead tr td,
+        [class~=swagger-ui] [class~=info] [class~=title],body,[class~=swagger-ui] select,.swagger-ui .scheme-container,
+        [class~=swagger-ui] [class~=info] p,[class~=swagger-ui] [class~=tab] li,[class~=swagger-ui] [class~=info] li,
+        [class~=swagger-ui] a[class~=nostyle],
+        .swagger-ui .dialog-ux .modal-ux-header h3,
+        .swagger-ui .dialog-ux .modal-ux-content h4,
+        .swagger-ui .dialog-ux .modal-ux-content p,
+        .swagger-ui .model {
             color:#ccc !important;
         }
         [class~=swagger-ui] [class~=opblock] [class~=opblock-section-header]{
             background-color:transparent;
         }
         body{
+            margin-left:0;
             margin-right:0;
-        }
-        body{
-            margin-top:0;
-        }
-        body{
-            background:#fafafa;
-        }
-        body{
-            background-color:#222;
+            background-color:#151515;
         }
 
+        * {
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI Variable","Segoe UI",
+                system-ui,ui-sans-serif,Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji" !important;
+        }
+
+        ::-webkit-scrollbar {width: 12px; height: 6px;}
+        ::-webkit-scrollbar-thumb {-webkit-border-radius: 10px;}
+        ::-webkit-scrollbar-track:vertical {-webkit-box-shadow: -1px 0 0 #ededed;}
+        ::-webkit-scrollbar-track {background-color: transparent;}
+        ::-webkit-scrollbar {width: 12px;}
+        ::-webkit-scrollbar-thumb {background-color: rgba(115, 115, 115, 0.2);}
+        ::-webkit-scrollbar-thumb { background-color: rgba(166, 166, 166, 0.27); }
+
+        .swagger-ui .opblock {
+            background: rgba(97,175,254, .2);
+        }
+
+        .swagger-ui .dialog-ux .modal-ux, .swagger-ui .dialog-ux .modal-ux-header {
+            background: #252525;
+            border-color: #4f4f4f;
+            border-width: 2px;
+        }
+
+        .swagger-ui .opblock-tag {
+            border-color: #aaa;
+        }
+
+        svg.arrow,
+        .authorization__btn svg {
+            fill: #FFFFFF;
+        }
+
+        input {
+            background: #222 !important;
+            border-color: #555 !important;
+            color: #ccc;
+        }
     </style>
 </head>
 <body>
