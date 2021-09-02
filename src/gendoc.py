@@ -371,7 +371,7 @@ def convert_annotation(obj):
 
         method = file.method.lower()
 
-        security = {}
+        security = []
         if file.auth_required:
             if doc.security is not None:
                 security = doc.security
