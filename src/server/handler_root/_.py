@@ -5,17 +5,38 @@ import route
 
 
 @route.http("GET", args=(
-    route.Argument("text", "str", "query", maximum=32),
-    route.Argument("count", "int", "query", minimum=1, maximum=100)),
-            require_auth=False)
+    route.Argument("text", "str", "query", maximum=32,
+                   doc=route.Document(summary="Input text.")),
+    route.Argument("count", "int", "query", minimum=1, maximum=100,
+                   doc=route.Document(summary="Multiple count."))),
+            require_auth=True,
+            docs=route.Document("Repeats the string specified with text.",
+                                types="application/json",
+                                responses=[
+                                    route.Response(200, "Successful response.", {
+                                        "success": True,
+                                        "result": "Hello, world!"
+                                    })
+                                ]))
 def on_get(handler, params):
     q = params["text"] * params["count"]
     route.success(handler, 200, q)
 
 
 @route.http("POST", args=(
-    route.Argument("text", "str", "body", maximum=32),
-    route.Argument("count", "int", "body", minimum=1, maximum=100)), require_auth=False)
+    route.Argument("text", "str", "query", maximum=32,
+                   doc=route.Document(summary="Input text.")),
+    route.Argument("count", "int", "query", minimum=1, maximum=100,
+                   doc=route.Document(summary="Multiple count."))),
+            require_auth=False,
+            docs=route.Document("Repeats the string specified with text.",
+                                types="application/json",
+                                responses=[
+                                    route.Response(200, "Successful response.", {
+                                        "success": True,
+                                        "result": "Hello, world!"
+                                    })
+                                ]))
 def on_post(handler, params):
     q = params["text"] * params["count"]
     route.success(handler, 200, q)

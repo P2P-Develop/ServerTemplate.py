@@ -128,77 +128,58 @@ def quick_invalid(handler, name, message):
                               .replace("%1", message)))
 
 
-def http(method, require_auth=True, args=()):
-    def _context(handler):
-        path = os.path.relpath(handler.__globals__["__file__"], "src/server/handler_root")
-        path = path.replace(os.sep, "/")
-        pp = 0
-
-        if type(args) == list:
-            arg3 = list(args)
-        elif type(args) != tuple:
-            arg3 = (args,)
-        else:
-            arg3 = args
-
-        for arg in arg3:
-            if arg.arg_in == "path" and "__" not in path:
-                raise ValueError("Some args have a path specified, but the path does not have __.")
-            if arg.arg_in == "path":
-                pp += 1
-
-        loader.signals.append({
-            "method": method,
-            "func": handler,
-            "path": path,
-            "require_auth": require_auth,
-            "args": arg3
-        })
-        return handler
-
-    return _context
-
-
-__all__ = [
-    "write", "Cause", "validate", "missing", "success", "post_error",
-    "finish", "Method", "http", "quick_invalid"
-]
 
 global loader
 
 
 class EPManager:
     def __init__(self):
+        global loader
         self.signals = []
         self.index_tree = {}
         self.known_source = []
+        loader = self
 
     def load(self, root):
         for file in pathlib.Path(root).glob("**/*.py"):
             self.load_single(file, False)
         if root not in self.known_source:
             self.known_source.append(root)
-        self._make_cache()
+        self.make_cache()
 
     def load_single(self, path, build_cache=True):
         try:
             m = ".".join(pathlib.Path(path).parts)[4:-3]
             importlib.import_module(m)
         except Exception as e:
-            pass
+            return False
         if build_cache:
             root = os.path.dirname(path)
             if root not in self.known_source:
                 self.known_source.append(root)
-            self._make_cache()
+            self.make_cache()
+        return True
 
-    def _make_cache(self):
+    def enumerate(self, dic=None):
+        result = []
+        if dic is None:
+            dic = self.index_tree
+        for item in dic.items():
+            i = item[1]
+            if type(i) == dict:
+                result += self.enumerate(i)
+            else:
+                result.append(i)
+        return result
+
+    def make_cache(self):
         for s in self.signals:
             method = s["method"]
             function = s["func"]
             path = s["path"]
             auth = s["require_auth"]
             args = s["args"]
+            docs = s["docs"]
 
             rt = path
             if rt.endswith(".py"):
@@ -231,7 +212,7 @@ class EPManager:
             if paths != qt_paths:
                 raise ValueError("Path argument count mismatch.")
 
-            cursor[method] = EndPoint(method, rt, path, function, auth, args, bool(paths))
+            cursor[method] = EndPoint(method, rt, path, function, auth, args, bool(paths), docs)
 
     def get_endpoint(self, method, path, params=None):
 
@@ -280,15 +261,50 @@ class EPManager:
             self.load(source)
 
 
-class EndPoint:
+class Response:
+    def __init__(self, code: int = 0,
+                 about: str = "Example response",
+                 example: (dict, str, int, float, bool, any) = None):
+        self.code = code
+        self.about = about
+        self.example = example
+
+
+class Document:
     def __init__(self,
-                 method: str,
-                 route_path: str,
-                 rel_path: str,
-                 handler,
-                 auth_required: bool = True,
-                 args: list = None,
-                 path_arg: bool = False):
+                 title: str = None,  # title or summary required
+                 summary: str = None,
+                 #description: str = "Description",
+                 #desc: str = "Description",
+                 types: (list, str) = "application/octet-stream",
+                 example: (dict, str, int, float, bool, any) = None,
+                 security: dict = None,
+                 more: dict = None,
+                 responses: list = None,
+                 tags: list = None,
+                 format: str = None):
+        if title is None and summary is None:
+            raise ValueError("Title or Summary must not be None.")
+        self.title = summary if title is None else title
+        #self.description = desc if description is None else description
+        self.types = [types] if type(types) == str else types
+        self.example = example
+        self.security = security
+        self.more = {} if more is None else more
+        self.responses = [] if responses is None else responses
+        self.tags = [] if tags is None else tags
+        self.format = format
+
+
+class Documentable:
+    def __init__(self, document: Document = None):
+        self.docs = document
+
+
+class EndPoint(Documentable):
+    def __init__(self, method: str, route_path: str, rel_path: str, handler, auth_required: bool = True,
+                 args: list = None, path_arg: bool = False, doc: Document = None):
+        super().__init__(doc)
         self.method = method
         self.route_path = route_path
         self.rel_path = rel_path
@@ -318,6 +334,8 @@ class EndPoint:
                 code = arg.validate(params)
             elif arg.arg_in == "path":
                 code = arg.validate(path_param)
+            else:
+                raise ValueError(f"Validate failed: N:{arg.name} - T:{arg.type} - I:{arg.arg_in}")
 
             if code == -1:
                 missing.append(arg.name)
@@ -361,18 +379,13 @@ class EndPoint:
         return True
 
 
-class Argument:
-    def __init__(self,
-                 name: str,
-                 type: str,
-                 arg_in: str,
-                 required: bool = True,
-                 description: str = None,
-                 auto_cast: bool = True,
-                 minimum: int = -1,
-                 maximum: int = -1,
-                 must_be: (tuple, list) = ()):
-        if type not in ["str", "string", "bool", "boolean", "number", "int", "double", "decimal", "float", "other"]:
+class Argument(Documentable):
+    def __init__(self, name: str, type: str, arg_in: str, required: bool = True, auto_cast: bool = True,
+                 minimum: int = -1, maximum: int = -1, must_be: (tuple, list) = (), doc: Document = None,
+                 format: str = None):
+        super().__init__(doc)
+        if type not in ["str", "string", "bool", "boolean", "number", "int", "long",
+                        "double", "decimal", "float", "other"]:
             raise ValueError("Argument type is must be valid type.")
         if arg_in not in ["path", "query", "body"]:
             raise ValueError("Argument location is mut be valid type.")
@@ -380,11 +393,11 @@ class Argument:
         self.type = type
         self.arg_in = arg_in
         self.required = required,
-        self.description = description,
         self.auto_cast = auto_cast,
         self.min = minimum
         self.max = maximum
         self.must_be = must_be
+        self.document = doc
 
     def norm_type(self, val=None):
         if "str" in self.type:
@@ -392,6 +405,8 @@ class Argument:
         elif "bool" in self.type:
             return "bool" if val is None else bool(val)
         elif self.type is "number" or "int" in self.type:
+            return "integer" if val is None else int(val)
+        elif self.type is "long":
             return "integer" if val is None else int(val)
         else:
             return "number" if val is None else float(val)
@@ -453,3 +468,41 @@ class Argument:
                 param_dict[name] = val
 
         return 0
+
+
+def http(method, require_auth: bool = True, args: tuple = (), docs: Document = None):
+    def _context(handler):
+        path = os.path.relpath(handler.__globals__["__file__"], "src/server/handler_root")
+        path = path.replace(os.sep, "/")
+        pp = 0
+
+        if type(args) == list:
+            arg3 = list(args)
+        elif type(args) != tuple:
+            arg3 = (args,)
+        else:
+            arg3 = args
+
+        for arg in arg3:
+            if arg.arg_in == "path" and "__" not in path:
+                raise ValueError("Some args have a path specified, but the path does not have __.")
+            if arg.arg_in == "path":
+                pp += 1
+
+        loader.signals.append({
+            "method": method,
+            "func": handler,
+            "path": path,
+            "require_auth": require_auth,
+            "args": arg3,
+            "docs": docs
+        })
+        return handler
+
+    return _context
+
+
+__all__ = [
+    "write", "Cause", "validate", "missing", "success", "post_error",
+    "finish", "Method", "http", "quick_invalid", "loader", "Argument", "Document", "EndPoint"
+]

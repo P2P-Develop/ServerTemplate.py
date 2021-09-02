@@ -2,8 +2,8 @@ import json
 import os
 import pathlib
 import re
-from importlib import import_module
-
+import uuid
+import route
 import yaml
 
 _HTML_TEMPLATE = """
@@ -52,6 +52,13 @@ host: "127.0.0.1"
 basePath: "/"
 schemes:
 - http
+securityDefinitions:
+  token:
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+security:
+  - token: []
 
 """
 
@@ -243,7 +250,10 @@ def normalizeResponses(obj: dict):
             staging["summary"] = staging["about"]
             del staging["about"]
 
-            staging["produces"] = [staging["returns"]]
+            if type(staging["returns"]) is str:
+                staging["produces"] = [staging["returns"]]
+            else:
+                staging["produces"] = staging["returns"]
             del staging["returns"]
             staging["responses"] = {}
             for code in list(staging.items()):
@@ -259,39 +269,169 @@ def normalizeResponses(obj: dict):
 
             if "params" in docs[1]:
                 staging["params"] = docs[1]["params"]
-            normalized[docs[0]] = {methods[0]: staging}
+            if docs[0] not in normalized:
+                normalized[docs[0]] = {}
+            normalized[docs[0]] = dict(normalized[docs[0]], **{methods[0]: staging})
 
     return normalized
 
 
+"""
+def docs():
+    return {
+        "get": {
+            "about": "Outputs the specified text.",
+            "returns": "application/json",
+            200: {
+                "about": "Successful response.",
+                "example": {
+                    "success": True,
+                    "result": "Hello, world!"
+                }
+            }
+        }
+    }
+"""
+
+
+def convertAnnotation(obj):
+    swaggers = {}
+    for oj in obj.items():
+        if type(oj[1]) != route.EndPoint:
+            swaggers[oj[0]] = oj[1]
+            continue
+        file = oj[1]
+        print(f"Importing docs from endpoint annotation '{file.method} {file.route_path}'...")
+        file: route.EndPoint
+        doc = file.docs
+        if doc is None:
+            print(f"No additional documentation found in '{file.method} {file.route_path}'.")
+            doc = route.Document("No document")
+
+        method = file.method.lower()
+
+        security = {}
+        if file.auth_required:
+            if doc.security is not None:
+                security = doc.security
+            else:
+                security = None
+
+        doc_obj = {
+            method: dict({
+                "about": doc.title,
+                "returns": doc.types,
+                "tags": doc.tags
+            }, **doc.more)
+        }
+
+        if security is not None:
+            doc_obj[method]["security"] = security
+
+        print("Converting responses...")
+        for response in doc.responses:
+            d = doc_obj[method][response.code] = {
+                "about": response.about
+            }
+
+            if doc.example is not None:
+                d["example"] = doc.example
+            if response.example is not None:
+                d["example"] = response.example
+
+        args = []
+
+        path_args = []
+
+        print("Converting arguments...")
+        for arg in file.args:
+            arg: route.Argument
+            norm_type = arg.norm_type()
+
+            if arg.arg_in == "path":
+                path_args.append(arg.name)
+
+            st = {
+                "name": arg.name,
+                "in": arg.arg_in,
+                "required": arg.required,
+                "type": norm_type
+            }
+            arg_doc = arg.document
+            if arg_doc is None:
+                continue
+
+            st["about"] = arg_doc.title
+
+            if arg_doc.format is not None:
+                st["format"] = arg_doc.format
+            elif arg.type not in ["str", "string", "bool", "boolean", "other"]:
+                at = None
+                if arg.type == "float":
+                    at = "float"
+                elif arg.type in ["decimal", "double"]:
+                    at = "double"
+                elif "int" in arg.type:
+                    at = "int32"
+                elif arg.type == "long":
+                    at = "int64"
+                if at is not None:
+                    st["format"] = at
+
+            if norm_type == "string":
+                if arg.min != -1:
+                    st["minLength"] = arg.min
+                if arg.max != -1:
+                    st["maxLength"] = arg.max
+            elif norm_type in ["integer", "number"]:
+                if arg.min != -1:
+                    st["minimum"] = arg.min
+                if arg.max != -1:
+                    st["maximum"] = arg.max
+
+            st = dict(st, **arg_doc.more)
+
+            args.append(st)
+
+        path = file.route_path
+        if not path.startswith("/"):
+            path = "/" + path
+
+        if file.path_arg:
+            for path_arg in path_args:
+                path = path.replace("__", "{" + path_arg + "}", 1)
+
+        if path == "_":
+            path = "/"
+        elif path.endswith("/_"):
+            path = path[:-1]
+
+        if path not in swaggers:
+            swaggers[path] = {}
+            swaggers[path]["responses"] = {}
+        if len(args) != 0:
+            doc_obj[method]["parameters"] = args
+
+        swaggers[path]["responses"] = dict(swaggers[path]["responses"], **doc_obj)
+
+    return swaggers
+
+
 def loadAsSwagger(obj):
     swaggers = {}
-    for fName in obj:
-        if fName.endswith(".py"):
-            moduleName = fName[4:-3].replace("/", ".")
-            module = import_module(moduleName)
-            if "docs" not in dir(module):
-                print(f"No docs were found in '{moduleName}'.")
-                continue
-            print(f"Importing docs from endpoint module '{moduleName}'...")
+    for file in obj:
+        if type(file) == route.EndPoint:
+            swaggers[uuid.uuid4().hex] = file
+            continue
 
-            moduleName = moduleName.replace("server.handler_root", "").replace(".", "/")
-            if re.match("^(.+?/|/)?_$", moduleName):
-                moduleName = moduleName[:-1]
-
-            swaggers[moduleName] = {
-                "responses": module.docs()
-            }
-            if "params" in dir(module):
-                swaggers[moduleName]["params"] = module.params()
-        elif fName.endswith(".json"):
-            with open(fName, "r", encoding="utf-8") as j:
+        if file.endswith(".json"):
+            with open(file, "r", encoding="utf-8") as j:
                 doc = json.JSONDecoder().decode(j.read())
                 if "docs" not in doc:
                     print(f"No docs were found in '{doc}'.")
                     continue
-                print(f"Importing docs from endpoint json '{fName}'...")
-                path = fName[:-5].replace("resources/handle", "")
+                print(f"Importing docs from endpoint json '{file}'...")
+                path = file[:-5].replace("resources/handler", "")
                 if re.match("^(.+?/|/)?_$", path):
                     path = path[:-1]
                 swaggers[path] = {
@@ -306,6 +446,29 @@ def loadAsSwagger(obj):
     for swg in std:
         tmp[swg] = swaggers[swg]
     return tmp
+
+
+def loadAsModule(obj):
+    if hasattr(route, "loader"):
+        loader = route.loader
+        loader.reload()
+    else:
+        loader = route.EPManager()
+        loader.load("src/server/handler_root/")
+
+    loader.signals = []
+
+    result = []
+
+    for f in obj:
+        if not f.endswith(".py"):
+            result.append(f)
+            continue
+        loader.load_single(f)
+
+    result += loader.enumerate()
+
+    return result
 
 
 def loadYaml(obj):
@@ -326,7 +489,7 @@ def find(obj):
             print(f"ERROR: A conflict has occurred in {f[:3]}.")
         docs.append(f)
     print("Searching files...")
-    for file in pathlib.Path("resources/handle/").glob("**/*"):
+    for file in pathlib.Path("resources/handler/").glob("**/*"):
         f = "/".join(file.parts)
         print("Found: " + f)
         if f in docs:
@@ -340,7 +503,9 @@ def find(obj):
 steps = [
     find,
     loadYaml,
+    loadAsModule,
     loadAsSwagger,
+    convertAnnotation,
     normalizeResponses,
     buildExample,
     normalizeParams,
