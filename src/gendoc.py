@@ -159,7 +159,7 @@ def whats_type_of_this_object(obj):
     return None
 
 
-def compress(obj: dict):
+def compress():
     print("Minimizing...")
     with open("docs.html", "r", encoding="utf-8") as r:
         abss = r.read()
@@ -197,10 +197,10 @@ def normalize_params(obj: dict):
     for gz in obj.items():
         for method in list(gz[1].items()):
             print(f"Normalizing parameters of '{gz[0]} - {method[0]}'...")
-            if "params" not in gz[1][method[0]]:
+            if "parameters" not in gz[1][method[0]]:
                 print(f"No parameters was found in '{gz[0]} - {method[0]}'.")
                 continue
-            for param in list(gz[1][method[0]]["params"]):
+            for param in list(gz[1][method[0]]["parameters"]):
                 param["description"] = param["about"]
                 del param["about"]
                 if "required" in param:
@@ -210,8 +210,6 @@ def normalize_params(obj: dict):
                     param["required"] = True
                 else:
                     param["required"] = False
-            method[1]["parameters"] = method[1]["params"]
-            del method[1]["params"]
     return obj
 
 
@@ -500,9 +498,6 @@ def load_as_swagger(obj):
                 swaggers[path] = {
                     "responses": doc["docs"]["responses"]
                 }
-
-                if "params" in doc["docs"]:
-                    swaggers[path]["params"] = doc["docs"]["params"]
 
     std = sorted(swaggers)
     tmp = {}

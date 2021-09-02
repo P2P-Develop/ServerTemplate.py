@@ -5,17 +5,17 @@
         "hello": "world"
     },
     "docs": {
-        "params": [
-            {
-                "name": "test",
-                "in": "query",
-                "required": false,
-                "about": "Test args",
-                "type": "string"
-            }
-        ],
         "responses": {
             "get": {
+                "parameters": [
+                    {
+                        "name": "test",
+                        "in": "query",
+                        "required": false,
+                        "about": "Test args",
+                        "type": "string"
+                    }
+                ],
                 "about": "Hello, World!",
                 "returns": "application/json",
                 "200": {
