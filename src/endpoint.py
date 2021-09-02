@@ -94,12 +94,12 @@ def http(method, require_auth: bool = True, args: tuple = (), docs: Document = N
     return _context
 
 
-class Documentable:
+class Documented:
     def __init__(self, document: Document = None):
         self.docs = document
 
 
-class Argument(Documentable):
+class Argument(Documented):
     def __init__(self, name: str, type: str, arg_in: str, required: bool = True, auto_cast: bool = True,
                  minimum: int = -1, maximum: int = -1, must_be: (tuple, list) = (), doc: Document = None,
                  format: str = None):
@@ -191,7 +191,7 @@ class Argument(Documentable):
         return 0
 
 
-class EndPoint(Documentable):
+class EndPoint(Documented):
     def __init__(self, method: str, route_path: str, rel_path: str, handler, auth_required: bool = True,
                  args: list = None, path_arg: bool = False, doc: Document = None):
         super().__init__(doc)
