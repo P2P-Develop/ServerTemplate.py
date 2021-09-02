@@ -99,8 +99,8 @@ class Argument(Documentable):
         self.name = name
         self.type = type
         self.arg_in = arg_in
-        self.required = required,
-        self.auto_cast = auto_cast,
+        self.required = required
+        self.auto_cast = auto_cast
         self.min = minimum
         self.max = maximum
         self.must_be = must_be
