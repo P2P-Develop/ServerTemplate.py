@@ -66,6 +66,12 @@ _HTML_TEMPLATE = """
                 system-ui,ui-sans-serif,Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji" !important;
         }
 
+        pre,
+        pre code,
+        pre code span {
+            font-family: ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace !important;
+        }
+
         ::-webkit-scrollbar {width: 12px; height: 6px;}
         ::-webkit-scrollbar-thumb {-webkit-border-radius: 10px;}
         ::-webkit-scrollbar-track:vertical {-webkit-box-shadow: -1px 0 0 #ededed;}
