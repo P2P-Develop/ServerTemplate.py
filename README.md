@@ -53,10 +53,10 @@ You need to setup ServerTemplate.py.
   ```python
   [00:00:00 WARN] Unexpected exception while handling client request resource /example
         at server.handler.dynamic_handle(handler.py:133): handler.handle(self, path, params)
-        at route._context(route.py:194): if missing(handler, params, args):
-        at route.missing(route.py:43): diff = search_missing(fields, require)
+        at _context(py:194): if missing(handler, params, args):
+        at missing(py:43): diff = search_missing(fields, require)
   Caused by: AttributeError: 'tuple' object has no attribute 'remove'
-        at route.search_missing(route.py:66): require.remove(key)
+        at search_missing(py:66): require.remove(key)
   ```
 
   </details>
@@ -66,10 +66,12 @@ You need to setup ServerTemplate.py.
     <summary>Example</summary>
 
     ```python
-
-import route    @route.http("GET", args=(
-        route.Argument("text", "str", "query", maximum=32),
-        route.Argument("count", "int", "query", minimum=1, maximum=100)),
+        
+    from endpoint import *
+    impport route 
+    @http("GET", args=(
+        Argument("text", "str", "query", maximum=32),
+        Argument("count", "int", "query", minimum=1, maximum=100)),
     require_auth=False)
     def handle(handler, path, params):
         q = params["text"] * params["count"]
@@ -83,20 +85,21 @@ import route    @route.http("GET", args=(
     <summary>Example</summary>
   
     ```python
-    @route.http("GET", args=(
-    route.Argument("text", "str", "path", maximum=32,
-                   doc=route.Document(summary="Input text.")),
-    route.Argument("count", "int", "path", minimum=1, maximum=100,
-                   doc=route.Document(summary="Multiple count."))),
-            require_auth=False,
-            docs=route.Document("Repeats the string specified with text.",
-                                types="application/json",
-                                responses=[
-                                    route.Response(200, "Successful response.", {
-                                        "success": True,
-                                        "result": "Hello, world!"
-                                    })
-                                ]))
+        from endpoint import *
+        @http("GET", args=(
+        Argument("text", "str", "path", maximum=32,
+                       doc=Document(summary="Input text.")),
+        Argument("count", "int", "path", minimum=1, maximum=100,
+                       doc=Document(summary="Multiple count."))),
+                require_auth=False,
+                docs=Document("Repeats the string specified with text.",
+                                    types="application/json",
+                                    responses=[
+                                        Response(200, "Successful response.", {
+                                            "success": True,
+                                            "result": "Hello, world!"
+                                        })
+                                    ]))
     ```
   
   </details>

@@ -1,90 +1,42 @@
+from endpoint import *
 import route
 
 
 # In this example, the string specified by the text parameter will be repeated the specified number of times.
 
-
-@route.http("GET", args=(
-    route.Argument("text", "str", "query", maximum=32,
-                   doc=route.Document(summary="Input text.")),
-    route.Argument("count", "int", "query", minimum=1, maximum=100,
-                   doc=route.Document(summary="Multiple count."))),
-            require_auth=True,
-            docs=route.Document("Repeats the string specified with text.",
-                                types="application/json",
-                                responses=[
-                                    route.Response(200, "Successful response.", {
-                                        "success": True,
-                                        "result": "Hello, world!"
-                                    })
-                                ]))
+@http("GET", args=(
+    Argument("text", "str", "query", maximum=32,
+             doc=Document(summary="Input text.")),
+    Argument("count", "int", "query", minimum=1, maximum=100,
+             doc=Document(summary="Multiple count."))),
+      require_auth=True,
+      docs=Document("Repeats the string specified with text.",
+                    types="application/json",
+                    responses=[
+                        Response(200, "Successful response.", {
+                            "success": True,
+                            "result": "Hello, world!"
+                        })
+                    ]))
 def on_get(handler, params):
     q = params["text"] * params["count"]
     route.success(handler, 200, q)
 
 
-@route.http("POST", args=(
-    route.Argument("text", "str", "query", maximum=32,
-                   doc=route.Document(summary="Input text.")),
-    route.Argument("count", "int", "query", minimum=1, maximum=100,
-                   doc=route.Document(summary="Multiple count."))),
-            require_auth=False,
-            docs=route.Document("Repeats the string specified with text.",
-                                types="application/json",
-                                responses=[
-                                    route.Response(200, "Successful response.", {
-                                        "success": True,
-                                        "result": "Hello, world!"
-                                    })
-                                ]))
+@http("POST", args=(
+    Argument("text", "str", "query", maximum=32,
+             doc=Document(summary="Input text.")),
+    Argument("count", "int", "query", minimum=1, maximum=100,
+             doc=Document(summary="Multiple count."))),
+      require_auth=False,
+      docs=Document("Repeats the string specified with text.",
+                    types="application/json",
+                    responses=[
+                        Response(200, "Successful response.", {
+                            "success": True,
+                            "result": "Hello, world!"
+                        })
+                    ]))
 def on_post(handler, params):
     q = params["text"] * params["count"]
     route.success(handler, 200, q)
-
-
-def params():
-    return [
-        {
-            "name": "text",
-            "in": "body",
-            "about": "Input text.",
-            "required": True,
-            "type": "string"
-        },
-        {
-            "name": "count",
-            "in": "body",
-            "about": "Count.",
-            "required": True,
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 100
-        }
-    ]
-
-
-def docs():
-    return {
-        "get": {
-            "about": "Outputs the specified text.",
-            "returns": "application/json",
-            200: {
-                "about": "Successful response.",
-                "example": {
-                    "success": True,
-                    "result": "Hello, world!"
-                }
-            }
-        },
-        "post": {
-            "about": "Outputs the specified text.",
-            "returns": "application/json",
-            200: {
-                "about": "Successful response.",
-                "example": {
-                    "success": True,
-                    "result": "Hello, world!"
-                }
-            }
-        },
-    }

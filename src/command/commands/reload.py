@@ -1,4 +1,4 @@
-import route
+import endpoint
 from command.command import CommandEntry
 
 
@@ -11,5 +11,5 @@ class CommandReload(CommandEntry):
 
     def exec(self, args):
         self.logger.info("main", "Reloading...")
-        route.loader.reload()
+        endpoint.loader.reload()
         self.logger.info("main", "Reload completed.")

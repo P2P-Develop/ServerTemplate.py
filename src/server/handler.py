@@ -7,6 +7,7 @@ import threading
 import traceback
 import urllib.parse as parse
 from http.server import BaseHTTPRequestHandler
+import endpoint
 
 import route
 
@@ -111,12 +112,12 @@ class Handler(BaseHTTPRequestHandler):
     def dynamic_handle(self, path, params, queries):
         path_param = {}
 
-        endpoint = route.loader.get_endpoint(self.command, path, path_param)
+        ep = endpoint.loader.get_endpoint(self.command, path, path_param)
 
         if endpoint is None:
             return False
 
-        endpoint.handle(self, params, queries, path_param)
+        ep.handle(self, params, queries, path_param)
 
         return True
 

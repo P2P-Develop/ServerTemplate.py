@@ -3,6 +3,8 @@ import os
 import pathlib
 import re
 import uuid
+
+import endpoint
 import route
 import yaml
 
@@ -64,7 +66,10 @@ def process_step(target):
     for step in steps:
         c = c + 1
         print(f"\n------------Processing step {c} of {len(steps)}------------")
-        obj = step(obj)
+        try:
+            obj = step(obj)
+        except TypeError:
+            obj = step()
 
 
 global swagger
@@ -288,16 +293,16 @@ def docs():
 def convert_annotation(obj):
     swaggers = {}
     for oj in obj.items():
-        if type(oj[1]) != route.EndPoint:
+        if type(oj[1]) != endpoint.EndPoint:
             swaggers[oj[0]] = oj[1]
             continue
         file = oj[1]
         print(f"Importing docs from endpoint annotation '{file.method} {file.route_path}'...")
-        file: route.EndPoint
+        file: endpoint.EndPoint
         doc = file.docs
         if doc is None:
             print(f"No additional documentation found in '{file.method} {file.route_path}'.")
-            doc = route.Document("No document")
+            doc = endpoint.Document("No document")
 
         method = file.method.lower()
 
@@ -336,7 +341,7 @@ def convert_annotation(obj):
 
         print("Converting arguments...")
         for arg in file.args:
-            arg: route.Argument
+            arg: endpoint.Argument
             norm_type = arg.norm_type()
 
             if arg.arg_in == "path":
@@ -411,7 +416,7 @@ def convert_annotation(obj):
 def load_as_swagger(obj):
     swaggers = {}
     for file in obj:
-        if type(file) == route.EndPoint:
+        if type(file) == endpoint.EndPoint:
             swaggers[uuid.uuid4().hex] = file
             continue
 
@@ -441,10 +446,10 @@ def load_as_swagger(obj):
 
 def load_as_module(obj):
     if hasattr(route, "loader"):
-        loader = route.loader
+        loader = endpoint.loader
         loader.reload()
     else:
-        loader = route.EPManager()
+        loader = endpoint.EPManager()
         loader.load("src/server/handler_root/")
 
     loader.signals = []
@@ -470,7 +475,7 @@ def load_yaml(obj):
     return obj
 
 
-def find(obj):
+def find():
     print("Searching modules...")
     docs = []
     for file in pathlib.Path("src/server/handler_root/").glob("**/*.py"):

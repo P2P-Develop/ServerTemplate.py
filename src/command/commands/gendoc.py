@@ -1,7 +1,7 @@
 import os
 import shutil
 import webbrowser
-import route
+import endpoint
 
 import gendoc
 from command.command import CommandEntry
@@ -44,7 +44,7 @@ class CommandDoc(CommandEntry):
         self.logger.info("main", "Deploying...")
         if os.path.exists("resources/docs.py"):
             shutil.copy("resources/docs.py", "src/server/handler_root/docs.py")
-            route.loader.reload()
+            endpoint.loader.reload()
         else:
             self.logger.error("main", "Deploy failed successfully: Logic not found.")
 

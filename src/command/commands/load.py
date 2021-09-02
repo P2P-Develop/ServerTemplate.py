@@ -1,6 +1,6 @@
 import os
 
-import route
+import endpoint
 from command.command import CommandEntry
 
 
@@ -21,5 +21,5 @@ class CommandLoad(CommandEntry):
         if not os.path.exists(path):
             self.logger.error("main", "Path not found.")
             return
-        route.loader.load()
+        endpoint.loader.load()
         self.logger.info("main", "Endpoints loaded.")
