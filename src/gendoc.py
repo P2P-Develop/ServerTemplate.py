@@ -26,7 +26,7 @@ _HTML_TEMPLATE = """
             overflow-y:scroll;
         }
         [class~=swagger-ui] select,.swagger-ui .scheme-container,[class~=swagger-ui] [class~=info] [class~=title]{
-            background-color:#151515;
+            background-color:#252525;
         }
         *:before,*,*:after{
             box-sizing:inherit;
@@ -58,7 +58,7 @@ _HTML_TEMPLATE = """
         body{
             margin-left:0;
             margin-right:0;
-            background-color:#151515;
+            background-color:#252525;
         }
 
         * {
@@ -66,8 +66,6 @@ _HTML_TEMPLATE = """
                 system-ui,ui-sans-serif,Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji" !important;
         }
 
-        pre,
-        pre code,
         pre code span {
             font-family: ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace !important;
         }
@@ -96,13 +94,17 @@ _HTML_TEMPLATE = """
 
         svg.arrow,
         .authorization__btn svg {
-            fill: #FFFFFF;
+            fill: #d4dee7;
         }
 
         input {
             background: #222 !important;
             border-color: #555 !important;
             color: #ccc;
+        }
+
+        .swagger-ui .btn.execute {
+            color: #fff !important;
         }
     </style>
 </head>
