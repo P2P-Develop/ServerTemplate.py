@@ -69,6 +69,20 @@ def http(method, require_auth: bool = True, args: tuple = (), docs: Document = N
                 pp += 1
 
         if type(method) is str:
+            if method == "*":
+                fig = method.split("|")
+                for met in Method.values():
+                    if met in fig:
+                        continue
+                    loader.signals.append({
+                        "method": met,
+                        "func": handler,
+                        "path": path,
+                        "require_auth": require_auth,
+                        "args": arg3,
+                        "docs": docs
+                    })
+                return
             if "|" in method:
                 for met in method.split("|"):
                     loader.signals.append({
