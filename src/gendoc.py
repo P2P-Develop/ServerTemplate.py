@@ -162,7 +162,7 @@ def process_step(target):
     obj = target
     for step in steps:
         c = c + 1
-        print(f"\n------------Processing step {c} of {len(steps)}------------")
+        print(f"\n------------Processing step {step.__name__} of {c}/{len(steps)}------------")
         try:
             obj = step(obj)
         except TypeError:
