@@ -40,6 +40,7 @@ _HTML_TEMPLATE = """
 """
 
 _SWAGGER_TEMPLATE = """
+openapi: "2.0"
 swagger: "2.0"
 info:
   description: "API Docs"
@@ -110,6 +111,7 @@ def generate_html(obj):
 
 
 def convert_to_oas3(obj: dict):
+    return obj
     print("Converting OpenAPI 2.0 to OpenAPI 3.0")
 
     response = requests.post("https://mermade.org.uk/openapi-converter/api/v1/convert", {
