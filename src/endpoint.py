@@ -35,7 +35,7 @@ class Document:
                  more: dict = None,
                  responses: list = None,
                  tags: list = None,
-                 format: str = None):
+                 format_type: str = None):
         if title is None and summary is None:
             raise ValueError("Title or Summary must not be None.")
         self.title = summary if title is None else title
@@ -46,7 +46,7 @@ class Document:
         self.more = {} if more is None else more
         self.responses = [] if responses is None else responses
         self.tags = [] if tags is None else tags
-        self.format = format
+        self.format = format_type
 
 
 def http(method, require_auth: bool = True, args: tuple = (), docs: Document = None):
@@ -100,17 +100,17 @@ class Documented:
 
 
 class Argument(Documented):
-    def __init__(self, name: str, type: str, arg_in: str, required: bool = True, auto_cast: bool = True,
+    def __init__(self, name: str, arg_type: str, arg_in: str, required: bool = True, auto_cast: bool = True,
                  minimum: int = -1, maximum: int = -1, must_be: (tuple, list) = (), doc: Document = None,
-                 format: str = None):
+                 format_type: str = None):
         super().__init__(doc)
-        if type not in ["str", "string", "bool", "boolean", "number", "int", "long",
-                        "double", "decimal", "float", "other"]:
+        if arg_type not in ["str", "string", "bool", "boolean", "number", "int", "long",
+                            "double", "decimal", "float", "other"]:
             raise ValueError("Argument type is must be valid type.")
         if arg_in not in ["path", "query", "body"]:
             raise ValueError("Argument location is mut be valid type.")
         self.name = name
-        self.type = type
+        self.type = arg_type
         self.arg_in = arg_in
         self.required = required
         self.auto_cast = auto_cast
@@ -118,7 +118,7 @@ class Argument(Documented):
         self.max = maximum
         self.must_be = must_be
         self.document = doc
-        self.format = format
+        self.format = format_type
 
     def norm_type(self, val=None):
         if "str" in self.type:
@@ -138,8 +138,8 @@ class Argument(Documented):
         typ = self.type
         cast = self.auto_cast
         must_be = self.must_be
-        min = self.min
-        max = self.max
+        min_val = self.min
+        max_val = self.max
 
         if name not in param_dict and self.required:
             return -1
@@ -150,10 +150,10 @@ class Argument(Documented):
             if len(must_be) is not 0 and value not in must_be:
                 return 1
 
-            if min is not -1 and len(value) < min:
+            if min_val is not -1 and len(value) < min_val:
                 return 3
 
-            if max is not -1 and len(value) > max:
+            if max_val is not -1 and len(value) > max_val:
                 return 4
 
             if cast:
@@ -179,10 +179,10 @@ class Argument(Documented):
             if len(must_be) is not 0 and val not in must_be:
                 return 1
 
-            if min is not -1 and val < min:
+            if min_val is not -1 and val < min_val:
                 return 3
 
-            if max is not -1 and val > max:
+            if max_val is not -1 and val > max_val:
                 return 4
 
             if cast:
@@ -300,7 +300,7 @@ class EPManager:
         try:
             m = ".".join(pathlib.Path(path).parts)[4:-3]
             importlib.import_module(m)
-        except Exception as e:
+        except (ModuleNotFoundError, TypeError):
             return False
         if build_cache:
             root = os.path.dirname(path)
