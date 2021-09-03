@@ -187,14 +187,6 @@ def whats_type_of_this_object(obj):
     return None
 
 
-def compress():
-    print("Minimizing...")
-    with open("docs.html", "r", encoding="utf-8") as r:
-        abss = r.read()
-    with open("docs/docs.html", "w", encoding="utf-8") as w:
-        w.write(abss.replace("\n", "").replace("    ", ""))
-
-
 def generate_html(obj: dict):
     print("Generating docs html...")
     rz = json.dumps(obj)
@@ -597,8 +589,7 @@ steps = [
     normalize_params,
     build_swagger,
     save,
-    generate_html,
-    compress
+    generate_html
 ]
 
 if __name__ == "__main__":
