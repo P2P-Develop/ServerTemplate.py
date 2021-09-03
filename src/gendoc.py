@@ -190,7 +190,7 @@ def whats_type_of_this_object(obj):
 def generate_html(obj: dict):
     print("Generating docs html...")
     rz = json.dumps(obj)
-    with open("docs.html", "w", encoding="utf-8") as w:
+    with open("docs/docs.html", "w", encoding="utf-8") as w:
         w.write(_HTML_TEMPLATE.replace("\"\"", rz).replace("%%NAME%%", obj["info"]["title"]))
 
 
