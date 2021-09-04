@@ -8,7 +8,6 @@ import traceback
 import urllib.parse as parse
 from http.server import BaseHTTPRequestHandler
 import endpoint
-
 import route
 
 
@@ -132,8 +131,34 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_header(header[0], header[1])
             self.end_headers()
 
+        if handled.body is not None:
+            self.send_body(handled.body, handled.raw)
 
         return True
+
+    def send_body(self, body, raw):
+        if raw:
+            self.wfile.write(body)
+            return
+
+        if "Accept" not in self.headers and "accept" not in self.headers:
+            self.wfile.write(json.dumps(body).encode("utf-8"))
+            return
+
+        accept = self.headers["Accept"] if "Accept" in self.headers else self.headers["accept"]
+
+        if "application/x-www-form-urlencoded" in accept:
+            if type(body) is dict:
+                self.wfile.write(parse.urlencode(body, True).encode("utf-8"))
+            elif type(body) is bytes:
+                self.wfile.write(body)
+            else:
+                self.wfile.write(parse.quote(body).encode("utf-8"))
+        elif True or "application/json" in accept or "text/json" in accept:  # TODO: More options
+            if type(body) is not bytes:
+                self.wfile.write(json. dumps(body).encode("utf-8"))
+            else:
+                self.wfile.write(body)
 
     def handle_switch(self):
         try:
