@@ -288,6 +288,7 @@ class Response(Documented):
     def __init__(self, code: int = 0,
                  headers: dict = None,
                  body=None,
+                 raw_body=False,
                  content_type=None,
                  doc: Document = None):
         super().__init__(doc)
@@ -295,14 +296,16 @@ class Response(Documented):
         self.docs = doc
         self.headers = {} if headers is None else headers
         self.body = body
+        self.raw = raw_body
         self.content_type = content_type
 
     def header(self, name, value):
         self.headers[name] = value
         return self
 
-    def body(self, value):
+    def body(self, value, raw=False):
         self.body = value
+        self.raw = raw
         return self
 
     def content_type(self, value):
