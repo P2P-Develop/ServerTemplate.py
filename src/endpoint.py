@@ -3,7 +3,8 @@ import os
 import pathlib
 
 from enum import Enum
-from route import quick_invalid, write, error, Cause
+from route import quick_invalid, write, Cause
+from route import error as e
 
 
 class Method(Enum):
@@ -20,7 +21,7 @@ class Method(Enum):
 
     @staticmethod
     def values():
-        return [e.value for e in Method]
+        return [ev.value for ev in Method]
 
 
 class Document:
@@ -224,7 +225,7 @@ class EndPoint(Documented):
         if not self.validate_arg(handler, params, queries, path_param):
             return
 
-        self.handler(handler, params)
+        return self.handler(handler, params)
 
     def validate_arg(self, handler, params, queries, path_param):
 
@@ -276,20 +277,74 @@ class EndPoint(Documented):
                 params[arg.name] = val
 
         if len(missing) is not 0:
-            write(handler, 400, error(Cause.MISSING_FIELD, Cause.MISSING_FIELD[2]
-                                      .replace("%0", str(len(missing)))
-                                      .replace("%1", ", ".join(missing))))
+            write(handler, 400, e(Cause.MISSING_FIELD, Cause.MISSING_FIELD[2]
+                                  .replace("%0", str(len(missing)))
+                                  .replace("%1", ", ".join(missing))))
             return False
         return True
 
 
-class Response:
+class Response(Documented):
     def __init__(self, code: int = 0,
-                 about: str = "Example response",
-                 example: (dict, str, int, float, bool, any) = None):
+                 headers: dict = None,
+                 body=None,
+                 raw_body=False,
+                 content_type=None,
+                 doc: Document = None):
+        super().__init__(doc)
         self.code = code
-        self.about = about
-        self.example = example
+        self.docs = doc
+        self.headers = {} if headers is None else headers
+        self.body = body
+        self.raw = raw_body
+        self.content_type = content_type
+
+    def header(self, name, value):
+        self.headers[name] = value
+        return self
+
+    def body(self, value, raw=False):
+        self.body = value
+        self.raw = raw
+        return self
+
+    def content_type(self, value):
+        self.content_type = value
+        self.header("Content-Type", value)
+        return self
+
+    def get_code(self):
+        return self.code
+
+
+class SuccessResponse(Response):
+    pass
+
+
+class ErrorResponse(Response):
+    def __init__(self,
+                 cause: Cause = None,
+                 code: int = 0,
+                 headers: dict = None,
+                 body=None,
+                 content_type=None,
+                 doc: Document = None):
+        if cause is not None:
+            super().__init__(cause[0], headers, cause[2], content_type, doc)
+        else:
+            super().__init__(code, headers, body, content_type, doc)
+
+        self.cause = cause
+
+
+def success(code):
+    return SuccessResponse(code)
+
+
+def error(cause: Cause = None, code: int = 0, message: str = None):
+    if cause is not None:
+        return ErrorResponse(cause)
+    return ErrorResponse(code=code, body=message)
 
 
 global loader
@@ -425,5 +480,5 @@ class EPManager:
 
 
 __all__ = [
-    "http", "Argument", "EndPoint", "Document", "Response", "Method"
+    "http", "Argument", "EndPoint", "Document", "Method", "success", "error", "SuccessResponse", "ErrorResponse"
 ]

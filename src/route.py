@@ -1,3 +1,4 @@
+import enum
 import json
 
 
@@ -12,7 +13,7 @@ def write(handler, code, txt, content_type="application/json"):
     handler.wfile.write(txt.encode())
 
 
-class Cause:
+class Cause(enum.Enum):
     AUTH_REQUIRED = [401, "AUTHORIZATION_REQUIRED", "Authorization required."]
     NOT_ALLOWED_OPERATION = [
         405, "OPERATION_NOT_ALLOWED", "Operation not allowed."]
@@ -27,6 +28,9 @@ class Cause:
                      "Invalid field: Field %0 is must be %1."]
     INVALID_FIELD_UNK = [400, "INVALID_FIELD", "Invalid field has found."]
     ERROR_OCCURRED = [500, "ERROR_OCCURRED", "An error has occurred."]
+
+    def __getitem__(self, index):
+        return self.value[index]
 
 
 def validate(handler, fname, value, must):
