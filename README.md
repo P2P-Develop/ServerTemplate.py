@@ -46,6 +46,23 @@ You need to setup ServerTemplate.py.
 
     In this example, you can make a route of /api/add-user.
   </details>
+- RESTful api support
+  <details>
+    <summary>Example</summary>
+
+  ```python
+  # /user/__.py
+  @http("GET", args=(Argument("user_id", "string", "path")))
+  def handle(handler, params):
+      pass
+  
+  @http("PUT|DELETE", args=(Argument("user_id", "string", "path"), 
+                            Argument("user_name", "string", "query"),
+                            Argument("data", "int", "body")))
+  def handle(handler, params):
+      pass
+  ```
+  </details>
 - Show stack trace in logs.
   <details>
     <summary>Example</summary>
