@@ -117,7 +117,21 @@ class Handler(BaseHTTPRequestHandler):
         if ep is None:
             return False
 
-        ep.handle(self, params, queries, path_param)
+        handled = ep.handle(self, params, queries, path_param)
+
+        if handled is None:
+            return True
+
+        if issubclass(type(handled), endpoint.Response):
+            if issubclass(type(handled), endpoint.ErrorResponse) and handled.cause is not None:
+                self.send_response(handled.code, handled.cause[1])
+            else:
+                self.send_response(handled.code)
+
+            for header in handled.headers.items():
+                self.send_header(header[0], header[1])
+            self.end_headers()
+
 
         return True
 
