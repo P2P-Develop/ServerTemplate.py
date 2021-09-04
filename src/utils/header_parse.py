@@ -7,7 +7,7 @@ class Header:
 class DecoratedHeader(Header):
     def __init__(self, name, value):
         super().__init__(name, value)
-        self.decoration  = {}
+        self.decoration = {}
         self._parse()
 
     def _parse(self):
@@ -38,6 +38,9 @@ class HeaderParser:
             raise ValueError("Header '%s' not found" % name)
 
         return self._headers[name]
+
+    def __contains__(self, item):
+        return item.lower() in self._headers
 
     def __getitem__(self, item):
         return self.get(item)
