@@ -13,10 +13,10 @@ import route
       docs=Document("Repeats the string specified with text.",
                     types="application/json",
                     responses=[
-                        Response(200, "Successful response.", {
+                        Response(200, doc=Document("Successful response.", example={
                             "success": True,
                             "result": "Hello, world!"
-                        })
+                        }))
                     ]))
 def do(handler, params):
     q = params["text"] * params["count"]
