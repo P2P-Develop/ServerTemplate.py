@@ -291,18 +291,18 @@ class Response(Documented):
                  content_type=None,
                  doc: Document = None):
         super().__init__(doc)
-        self._code = code
+        self.code = code
         self.docs = doc
-        self._headers = {} if headers is None else headers
-        self._body = body
+        self.headers = {} if headers is None else headers
+        self.body = body
         self.content_type = content_type
 
     def header(self, name, value):
-        self._headers[name] = value
+        self.headers[name] = value
         return self
 
     def body(self, value):
-        self._body = value
+        self.body = value
         return self
 
     def content_type(self, value):
@@ -311,7 +311,7 @@ class Response(Documented):
         return self
 
     def get_code(self):
-        return self._code
+        return self.code
 
 
 class SuccessResponse(Response):
@@ -329,12 +329,7 @@ def success(code):
 def error(cause: Cause = None, code: int = 0, message: str = None):
     if cause is not None:
         return ErrorResponse(cause[0], e(cause[1], cause[2]))
-    b = {
-        "success": False
-    }
-    if message is not None:
-        b["message"] = message
-    return ErrorResponse(code, body=b)
+    return ErrorResponse(code, body=message)
 
 
 global loader
