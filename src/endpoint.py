@@ -319,7 +319,19 @@ class SuccessResponse(Response):
 
 
 class ErrorResponse(Response):
-    pass
+    def __init__(self,
+                 cause: Cause = None,
+                 code: int = 0,
+                 headers: dict = None,
+                 body=None,
+                 content_type=None,
+                 doc: Document = None):
+        if cause is not None:
+            super().__init__(cause[0], headers, cause[2], content_type, doc)
+        else:
+            super().__init__(code, headers, body, content_type, doc)
+
+        self.cause = cause
 
 
 def success(code):
@@ -328,8 +340,8 @@ def success(code):
 
 def error(cause: Cause = None, code: int = 0, message: str = None):
     if cause is not None:
-        return ErrorResponse(cause[0], e(cause[1], cause[2]))
-    return ErrorResponse(code, body=message)
+        return ErrorResponse(cause)
+    return ErrorResponse(code=code, body=message)
 
 
 global loader
@@ -465,5 +477,5 @@ class EPManager:
 
 
 __all__ = [
-    "http", "Argument", "EndPoint", "Document", "Response", "Method"
+    "http", "Argument", "EndPoint", "Document", "Method", "success", "error", "SuccessResponse", "ErrorResponse"
 ]
