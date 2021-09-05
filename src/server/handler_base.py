@@ -126,7 +126,7 @@ class ServerHandler(StreamRequestHandler):
         self.flush_header()
 
     def send_response(self, code, message=None, server_version="HTTP/1.1"):
-        if server_version != "HTTP/1.1":
+        if server_version != "HTTP/0.9":
             if message is None and code in responses:
                 message = responses[code]
             self.response_cache.append(f"{server_version} {code} {message}".encode("iso-8859-1"))
