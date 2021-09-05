@@ -99,7 +99,7 @@ class Handler(ServerHandler):
                 self.send_header(header[0], header[1])
             self.end_header()
 
-        if handled.body is not None:
+        if handled is not None:
             self.send_body(handled.body, handled.raw)
 
         return True
