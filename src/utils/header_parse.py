@@ -20,7 +20,7 @@ class DecoratedHeader(Header):
             self.decoration[kv[0]] = kv[1]
 
 
-class HeaderParser:
+class HeaderSet:
     def __init__(self):
         self._headers = {}
 
