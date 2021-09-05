@@ -9,8 +9,10 @@ def encode(amfs):
 def write(handler, code, txt, content_type="application/json"):
     handler.send_response(code)
     handler.send_header("Content-Type", content_type)
+    ln = txt.encode("utf-8")
+    handler.send_header("Content-Length", ln)
     handler.end_headers()
-    handler.wfile.write(txt.encode())
+    handler.wfile.write(ln)
 
 
 class Cause(enum.Enum):
