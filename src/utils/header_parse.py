@@ -1,7 +1,11 @@
+def _(n):
+    return n.rstrip().lstrip()
+
+
 class Header:
     def __init__(self, name, value):
-        self.name = name
-        self.value = value
+        self.name = _(name)
+        self.value = _(value)
 
 
 class DecoratedHeader(Header):
@@ -17,7 +21,7 @@ class DecoratedHeader(Header):
             if len(kv) != 2:
                 self.decoration = {}
                 continue
-            self.decoration[kv[0]] = kv[1]
+            self.decoration[_(kv[0])] = _(kv[1])
 
 
 class HeaderSet:
@@ -26,10 +30,13 @@ class HeaderSet:
 
     def from_dict(self, headers: dict):
         for kv in headers.items():
-            if ";" in kv[1]:
-                self._headers[kv[0].lower()] = DecoratedHeader(*kv)
+            self.add(*kv)
 
-            self._headers[kv[0].lower()] = Header(*kv)
+    def add(self, name, value):
+        if ";" in value:
+            self._headers[_(name.lower())] = DecoratedHeader(name, value)
+
+        self._headers[_(name.lower())] = Header(name, value)
 
     def get(self, name):
         name = name.lower()
