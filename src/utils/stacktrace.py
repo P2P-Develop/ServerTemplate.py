@@ -2,10 +2,10 @@ import traceback
 from os import path
 
 
-def get_stack_trace(self, base_module, exception_type, exception, trace):
+def get_stack_trace(base_module, exception_type, exception, trace):
     tb = traceback.TracebackException(exception_type, exception, trace)
 
-    st = f"Unexpected exception while handling client request resource '{self.path}'\n"
+    st = f"Unexpected exception while handling client request resource '{path}'\n"
 
     flag = False
 
@@ -13,20 +13,20 @@ def get_stack_trace(self, base_module, exception_type, exception, trace):
         stack: traceback.FrameSummary
         if base_module in stack.filename and not flag:
             flag = True
-            st += "Caused by: " + self.get_class_chain(exception_type) + ": " + str(tb) + "\n"
-        st += self.build_trace(stack)
+            st += "Caused by: " + get_class_chain(exception_type) + ": " + str(tb) + "\n"
+        st += build_trace(stack)
 
     if not flag:
         st = f"Unexpected exception while handling client request resource '{self.path}'\n"
 
         for stack in tb.stack[:len(tb.stack) - 1]:
-            st += self.build_trace(stack)
+            st += build_trace(stack)
 
-        st += "Caused by: " + self.get_class_chain(exception_type) + ": " + str(tb) + "\n"
+        st += "Caused by: " + get_class_chain(exception_type) + ": " + str(tb) + "\n"
 
         stack = tb.stack[len(tb.stack) - 1]
 
-        st += self.build_trace(stack)
+        st += build_trace(stack)
 
     return st
 

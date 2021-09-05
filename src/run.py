@@ -9,14 +9,12 @@ from server import server
 from utils.logging import Logger
 from utils.token import Token
 
+from server import handler_base
+
 
 def loadConfig(fileName):
     with open(fileName, "r", encoding="utf-8") as r:
         return yaml.safe_load(r)
-
-
-global main
-
 
 class Main:
     def __init__(self):
@@ -55,6 +53,10 @@ class Main:
         self.config = config
         if not self.validateConfig(config):
             self.die(1)
+
+        handler_base.read_limit = config["system"]["request"]["header_readlimit"]
+        handler_base.header_limit = config["system"]["request"]["header_limit"]
+        handler_base.default_version = config["system"]["request"]["default_protocol"]
 
         token = Token("token.sig")
         if not token.load():

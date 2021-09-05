@@ -7,4 +7,5 @@ system:
     #port: 25500
   request:
     header_readlimit: 65536
+    default_protocol: "HTTP/0.9"
     header_limit: 127

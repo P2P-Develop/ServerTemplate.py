@@ -1,5 +1,4 @@
 from socketserver import StreamRequestHandler
-from run import main
 from utils import stacktrace
 from sys import exc_info
 from utils.header_parse import HeaderSet
@@ -73,19 +72,20 @@ responses = {
     511: "Network Authentication Required"
 }
 
+default_version = "HTTP/0.9"
+read_limit = 65536
+header_limit = 100
 
 class ServerHandler(StreamRequestHandler):
     def __init__(self, request, client_address, server):
         super().__init__(request, client_address, server)
         self.response_cache = []
         self.multiple = False
+        self.request = None
 
     def handle(self):
         try:
-            req = HTTPParser(self.rfile,
-                             main.config["system"]["request"]["default_version"],
-                             main.config["system"]["request"]["header_limit"]
-                             ).parse()
+            req = HTTPParser(self.rfile).parse()
 
             if req.protocol >= "HTTP/1.1":
                 self.multiple = True
@@ -100,14 +100,16 @@ class ServerHandler(StreamRequestHandler):
                 if req.headers["Expect"] == "100-continue":
                     req.expect_100 = True
 
-            self.handle_request(req)
+            self.request = req
+
+            self.handle_request()
         except ParseException as e:
             self.handle_parse_error(e.cause)
 
     def handle_parse_error(self, cause):
         pass
 
-    def handle_request(self, http_request):
+    def handle_request(self):
         pass
 
     def send_header(self, name, value, server_version="HTTP/1.1"):
@@ -117,6 +119,10 @@ class ServerHandler(StreamRequestHandler):
     def flush_header(self):
         self.wfile.write(b"".join(self.response_cache))
         self.response_cache = []
+
+    def end_header(self):
+        self.response_cache.append(b"\r\n")
+        self.flush_header()
 
     def send_response(self, code, message=None, server_version="HTTP/1.1"):
         if server_version != "HTTP/1.1":
@@ -130,17 +136,15 @@ def decode(line):
 
 
 class HTTPParser:
-    def __init__(self, rfile, read_limit, header_limit):
+    def __init__(self, rfile):
         self.rfile = rfile
-        self.read_limit = read_limit
-        self.header_limit = header_limit
         self._response = HTTPRequest()
 
     def _read_line(self):
         try:
-            read = self.rfile.readline(self.read_limit + 1)
+            read = self.rfile.readline(read_limit + 1)
 
-            if len(read) > self.read_limit:
+            if len(read) > read_limit:
                 raise ParseException("URI_TOO_LONG")
             return read
         except any as e:
@@ -153,7 +157,7 @@ class HTTPParser:
         self._first_line(self._read_line())
         self._response.headers = HeaderSet()
         count = 0
-        while count < self.header_limit:
+        while count < header_limit:
             d = decode(self._read_line())
 
             if d == "\r\n":
@@ -181,7 +185,7 @@ class HTTPParser:
             self._response.protocol = version
 
         elif len(parts) == 2:
-            self._response.protocol = "HTTP/0.9"
+            self._response.protocol = default_version
 
         else:
             raise ParseException("MALFORMED_REQUEST")

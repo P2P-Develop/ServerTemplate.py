@@ -4,21 +4,13 @@ import mimetypes
 import os
 import sys
 import urllib.parse as parse
-from http.server import BaseHTTPRequestHandler
 import endpoint
 import route
 from utils.stacktrace import get_stack_trace
-from utils.logging import get_log_name
+from server.handler_base import ServerHandler, HTTPRequest
 
 
-def write(sv, code, txt):
-    sv.send_response(code)
-    sv.send_header("Content-Type", "application/json")
-    sv.end_headers()
-    sv.wfile.write(txt.encode())
-
-
-class Handler(BaseHTTPRequestHandler):
+class Handler(ServerHandler):
 
     def __init__(self, request, client_address, server):
         self.logger = server.logger
@@ -26,34 +18,13 @@ class Handler(BaseHTTPRequestHandler):
         self.instance = server.instance
         self.config = self.instance.config
         super().__init__(request, client_address, server)
+        self.request = None
 
-    def log_message(self, format, *args):
-        self.logger.info(get_log_name(), self.address_string() +
-                         " -> " + format % args)
-
-    def do_auth(self):
-        if "Authorization" not in self.headers:
-            route.post_error(self, route.Cause.AUTH_REQUIRED)
-
-            return True
-
-        auth = self.headers["Authorization"].split(" ")
-
-        if len(auth) != 2:
-            route.post_error(self, route.Cause.AUTH_REQUIRED)
-
-            return True
-
-        if str(auth[0]).lower() != "token":
-            route.post_error(self, route.Cause.AUTH_REQUIRED)
-
-            return True
-
-        if not self.token.validate(auth[1]):
-            route.post_error(self, route.Cause.AUTH_REQUIRED)
-
-            return True
-        return False
+    def handle_request(self):
+        self.handle_switch()
+        if not self.wfile.closed:
+            self.wfile.flush()
+            self.wfile.close()
 
     def call_handler(self, path: str, params, queries):
 
@@ -79,7 +50,10 @@ class Handler(BaseHTTPRequestHandler):
                         if self.do_auth():
                             return
 
-                    write(self, content["code"], json.JSONEncoder().encode(content["obj"]))
+                    self.send_response(content["code"])
+                    self.send_header("Content-Type", "application/json")
+                    self.end_header()
+                    self.wfile.write(json.JSONEncoder().encode(content["obj"]).encode("utf-8"))
                     return
 
             if os.path.exists("resources/resource" + path):
@@ -89,7 +63,7 @@ class Handler(BaseHTTPRequestHandler):
                 with open("resources/resource" + path, mode="rb") as r:
                     self.send_response(200)
                     self.send_header("Content-Type", mimetypes.guess_type("resources/resource" + path)[0])
-                    self.end_headers()
+                    self.end_header()
                     self.wfile.write(r.read())
                     return
 
@@ -101,12 +75,16 @@ class Handler(BaseHTTPRequestHandler):
     def dynamic_handle(self, path, params, queries):
         path_param = {}
 
-        ep = endpoint.loader.get_endpoint(self.command, path, path_param)
+        ep = endpoint.loader.get_endpoint(self.request.method, path, path_param)
 
         if ep is None:
             return False
 
-        handled = ep.handle(self, params, queries, path_param)
+        try:
+            handled = ep.handle(self, params, queries, path_param)
+        except Exception as e:
+            get_stack_trace("handler_root", *sys.exc_info())
+            return
 
         if handled is None:
             return True
@@ -119,7 +97,7 @@ class Handler(BaseHTTPRequestHandler):
 
             for header in handled.headers.items():
                 self.send_header(header[0], header[1])
-            self.end_headers()
+            self.end_header()
 
         if handled.body is not None:
             self.send_body(handled.body, handled.raw)
@@ -131,11 +109,11 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(body)
             return
 
-        if "Accept" not in self.headers and "accept" not in self.headers:
+        if "Accept" not in self.request.headers and "accept" not in self.request.headers:
             self.wfile.write(json.dumps(body).encode("utf-8"))
             return
 
-        accept = self.headers["Accept"] if "Accept" in self.headers else self.headers["accept"]
+        accept = self.request.headers["Accept"] if "Accept" in self.request.headers else self.request.headers["accept"]
 
         if "application/x-www-form-urlencoded" in accept:
             if type(body) is dict:
@@ -152,16 +130,16 @@ class Handler(BaseHTTPRequestHandler):
 
     def handle_switch(self):
         try:
-            path = parse.urlparse(self.path)
+            path = parse.urlparse(self.request.path)
             queries = dict(parse.parse_qsl(path.query))
 
-            if self.command in ["GET", "HEAD", "TRACE", "OPTIONS"]:
+            if self.request.method in ["GET", "HEAD", "TRACE", "OPTIONS"]:
 
                 self.call_handler(path.path, {}, queries)
             else:
-                if "Content-Type" in self.headers:
-                    content_len = int(self.headers.get("content-length"))
-                    content_type = self.headers["Content-Type"]
+                if "Content-Type" in self.request.headers:
+                    content_len = int(self.request.headers.get("content-length"))
+                    content_type = self.request.headers["Content-Type"]
 
                     if content_type in ["application/json", "text/json", "application/x-json"]:
                         req_body = self.rfile.read(content_len).decode("utf-8")
@@ -175,7 +153,7 @@ class Handler(BaseHTTPRequestHandler):
 
                     elif content_type.startswith("multipart/form-data"):
                         f = cgi.FieldStorage(fp=self.rfile,
-                                             headers=self.headers,
+                                             headers=self.request.headers,
                                              environ={
                                                  "REQUEST_METHOD": "POST",
                                                  "CONTENT_TYPE": content_type,
@@ -197,31 +175,30 @@ class Handler(BaseHTTPRequestHandler):
         except:
             get_stack_trace("server", *sys.exc_info())
 
-    def handle_one_request(self):
-        try:
-            self.raw_requestline = self.rfile.readline(65537)
-            if len(self.raw_requestline) > 65536:
-                self.requestline = ''
-                self.request_version = ''
-                self.command = ''
-                self.send_error(414)
-                return
-            if not self.raw_requestline:
-                self.close_connection = True
-                return
-            if not self.parse_request():
-                return
-            self.handle_switch()
-            if not self.wfile.closed:
-                self.wfile.flush()
-                self.wfile.close()
-        except Exception as e:
-            get_stack_trace("server", *sys.exc_info())
-            self.close_connection = True
-            return
+    def do_auth(self):
+        self.request: HTTPRequest
+        if "Authorization" not in self.request.headers:
+            route.post_error(self, route.Cause.AUTH_REQUIRED)
 
-    def send_response(self, code, message=None):
-        self.log_request(code)
-        self.send_response_only(code, message)
-        self.send_header("Server", "gws")
-        self.send_header("Connection", "close")
+            return True
+
+        auth = self.request.headers["Authorization"].split(" ")
+
+        if len(auth) != 2:
+            route.post_error(self, route.Cause.AUTH_REQUIRED)
+
+            return True
+
+        if str(auth[0]).lower() != "token":
+            route.post_error(self, route.Cause.AUTH_REQUIRED)
+
+            return True
+
+        if not self.token.validate(auth[1]):
+            route.post_error(self, route.Cause.AUTH_REQUIRED)
+
+            return True
+        return False
+
+    def handle_parse_error(self, cause):
+        pass
