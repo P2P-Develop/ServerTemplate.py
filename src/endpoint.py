@@ -480,5 +480,6 @@ class EPManager:
 
 
 __all__ = [
-    "http", "Argument", "EndPoint", "Document", "Method", "success", "error", "SuccessResponse", "ErrorResponse"
+    "http", "Argument", "EndPoint", "Document", "Method", "success", "error",
+    "SuccessResponse", "ErrorResponse", "Response"
 ]
