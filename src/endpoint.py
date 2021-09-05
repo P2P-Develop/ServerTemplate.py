@@ -117,7 +117,7 @@ class Documented:
 class Argument(Documented):
     def __init__(self, name: str, arg_type: str, arg_in: str, required: bool = True, auto_cast: bool = True,
                  minimum: int = -1, maximum: int = -1, must_be: (tuple, list) = (), doc: Document = None,
-                 format_type: str = None):
+                 format_type: str = None, ignore_check_expect100=False):
         super().__init__(doc)
         if arg_type not in ["str", "string", "bool", "boolean", "number", "int", "long",
                             "double", "decimal", "float", "other"]:
@@ -134,6 +134,7 @@ class Argument(Documented):
         self.must_be = must_be
         self.document = doc
         self.format = format_type
+        self.ignore_check_expect100 = ignore_check_expect100
 
     def norm_type(self, val=None):
         if "str" in self.type:
@@ -157,6 +158,8 @@ class Argument(Documented):
         max_val = self.max
 
         if name not in param_dict and self.required:
+            if self.ignore_check_expect100:
+                return 0
             return -1
 
         value = param_dict[name]
