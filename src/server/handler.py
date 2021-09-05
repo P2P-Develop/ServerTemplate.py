@@ -98,11 +98,16 @@ class Handler(ServerHandler):
             for header in handled.headers.items():
                 self.send_header(header[0], header[1])
             self.end_header()
+            if handled.body is not None:
+                self.send_body(handled.body, handled.raw)
 
         if handled is not None:
+            v = str(handled).encode("utf-8")
             self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.send_header("Connection", "close")
             self.end_header()
-            self.send_body(handled, True)
+            self.wfile.write(v)
 
         return True
 
@@ -112,23 +117,32 @@ class Handler(ServerHandler):
             return
 
         if "Accept" not in self.request.headers and "accept" not in self.request.headers:
-            self.wfile.write(json.dumps(body).encode("utf-8"))
+            self.send_body_with_length("application/json", json.dumps(body).encode("utf-8"))
             return
 
         accept = self.request.headers["Accept"] if "Accept" in self.request.headers else self.request.headers["accept"]
 
         if "application/x-www-form-urlencoded" in accept:
             if type(body) is dict:
-                self.wfile.write(parse.urlencode(body, True).encode("utf-8"))
+                self.send_body_with_length("application/x-www-form-urlencoded",
+                                           parse.urlencode(body, True).encode("utf-8"))
             elif type(body) is bytes:
+                self.send_body_with_length("application/octet-stream", body)
                 self.wfile.write(body)
             else:
-                self.wfile.write(parse.quote(body).encode("utf-8"))
+                self.send_body_with_length("application/x-www-form-urlencoded",
+                                           parse.urlencode(body, True).encode("utf-8"))
         elif True or "application/json" in accept or "text/json" in accept:  # TODO: More options
             if type(body) is not bytes:
-                self.wfile.write(json.dumps(body).encode("utf-8"))
+                self.send_body_with_length("application/json", json.dumps(body).encode("utf-8"))
             else:
-                self.wfile.write(body)
+                self.send_body_with_length("application/octet-stream", body)
+
+    def send_body_with_length(self, type, body):
+        self.send_header("Content-Length", len(body))
+        self.send_header("Content-Type", type)
+        self.end_header()
+        self.wfile.write(body)
 
     def handle_switch(self):
         try:

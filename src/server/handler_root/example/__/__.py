@@ -20,5 +20,4 @@ import route
                         }))
                     ]))
 def on_get(handler, params):
-    q = params["text"] * params["count"]
-    route.success(handler, 200, q)
+    return params["text"] * params["count"]

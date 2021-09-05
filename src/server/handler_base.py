@@ -76,6 +76,7 @@ default_version = "HTTP/0.9"
 read_limit = 65536
 header_limit = 100
 
+import http.server
 
 class ServerHandler(StreamRequestHandler):
     def __init__(self, request, client_address, server):
@@ -118,10 +119,14 @@ class ServerHandler(StreamRequestHandler):
             self.response_cache.append(f"{name}: {value}\r\n".encode("iso-8859-1"))
 
     def flush_header(self):
+        if not hasattr(self, "response_cache"):
+            return
         self.wfile.write(b"".join(self.response_cache))
         self.response_cache = []
 
     def end_header(self):
+        if not hasattr(self, "response_cache"):
+            self.response_cache = []
         self.response_cache.append(b"\r\n")
         self.flush_header()
 
@@ -129,7 +134,9 @@ class ServerHandler(StreamRequestHandler):
         if server_version != "HTTP/0.9":
             if message is None and code in responses:
                 message = responses[code]
-            self.response_cache.append(f"{server_version} {code} {message}".encode("iso-8859-1"))
+            if not hasattr(self, "response_cache"):
+                self.response_cache = []
+            self.response_cache.append(f"{server_version} {code} {message}\r\n".encode("iso-8859-1"))
 
 
 def decode(line):
