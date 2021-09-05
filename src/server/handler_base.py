@@ -81,7 +81,9 @@ class ServerHandler(StreamRequestHandler):
 
     def handle(self):
         try:
-            req = HTTPParser(self.rfile, main.config["system"]["request"]["default_version"])
+            req = HTTPParser(self.rfile,
+                             main.config["system"]["request"]["default_version"],
+                             main.config["system"]["request"]["header_limit"])
 
             self.handle_request(req)
         except ParseException as e:
@@ -113,16 +115,17 @@ def decode(line):
 
 
 class HTTPParser:
-    def __init__(self, rfile, limit):
+    def __init__(self, rfile, read_limit, header_limit):
         self.rfile = rfile
-        self.limit = limit
+        self.read_limit = read_limit
+        self.header_limit = header_limit
         self._response = HTTPRequest()
 
     def _read_line(self):
         try:
-            read = self.rfile.readline(self.limit + 1)
+            read = self.rfile.readline(self.read_limit + 1)
 
-            if len(read) > self.limit:
+            if len(read) > self.read_limit:
                 raise ParseException("URI_TOO_LONG")
             return read
         except any as e:
@@ -134,13 +137,15 @@ class HTTPParser:
     def parse(self):
         self._first_line(self._read_line())
         self._response.headers = HeaderSet()
-        while True:
+        count = 0
+        while count < self.header_limit:
             d = decode(self._read_line())
 
             if d == "\r\n":
                 break
 
             self._header(d.rstrip("\r\n"))
+            count += 1
         return self
 
     def _header(self, data):

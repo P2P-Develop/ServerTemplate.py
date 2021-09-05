@@ -7,3 +7,4 @@ system:
     #port: 25500
   request:
     header_readlimit: 65536
+    header_limit: 127
