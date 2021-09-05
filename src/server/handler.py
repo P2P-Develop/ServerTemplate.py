@@ -3,12 +3,12 @@ import json
 import mimetypes
 import os
 import sys
-import threading
-import traceback
 import urllib.parse as parse
 from http.server import BaseHTTPRequestHandler
 import endpoint
 import route
+from utils.stacktrace import get_stack_trace
+from utils.logging import get_log_name
 
 
 def write(sv, code, txt):
@@ -27,18 +27,8 @@ class Handler(BaseHTTPRequestHandler):
         self.config = self.instance.config
         super().__init__(request, client_address, server)
 
-    @staticmethod
-    def parse_thread_name(name):
-        name = str.strip(name, "ThreadPoolExecutor-")
-        splittext = str.split(name, "_")
-
-        return f"thread-{splittext[0]}-{splittext[1]}"
-
-    def get_log_name(self):
-        return self.parse_thread_name(threading.current_thread().getName())
-
     def log_message(self, format, *args):
-        self.logger.info(self.get_log_name(), self.address_string() +
+        self.logger.info(get_log_name(), self.address_string() +
                          " -> " + format % args)
 
     def do_auth(self):
@@ -105,7 +95,7 @@ class Handler(BaseHTTPRequestHandler):
 
             route.post_error(self, route.Cause.EP_NOTFOUND)
         except Exception as e:
-            self.print_stack_trace(*sys.exc_info())
+            get_stack_trace("server", *sys.exc_info())
             pass
 
     def dynamic_handle(self, path, params, queries):
@@ -156,7 +146,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(parse.quote(body).encode("utf-8"))
         elif True or "application/json" in accept or "text/json" in accept:  # TODO: More options
             if type(body) is not bytes:
-                self.wfile.write(json. dumps(body).encode("utf-8"))
+                self.wfile.write(json.dumps(body).encode("utf-8"))
             else:
                 self.wfile.write(body)
 
@@ -205,7 +195,7 @@ class Handler(BaseHTTPRequestHandler):
                     route.post_error(self, route.Cause.MISSING_FIELD, "Content-Type header is required.")
                     return
         except:
-            self.print_stack_trace(*sys.exc_info())
+            get_stack_trace("server", *sys.exc_info())
 
     def handle_one_request(self):
         try:
@@ -226,7 +216,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.flush()
                 self.wfile.close()
         except Exception as e:
-            self.print_stack_trace(*sys.exc_info())
+            get_stack_trace("server", *sys.exc_info())
             self.close_connection = True
             return
 
@@ -235,48 +225,3 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response_only(code, message)
         self.send_header("Server", "gws")
         self.send_header("Connection", "close")
-
-    def print_stack_trace(self, etype, exception, trace):
-        tb = traceback.TracebackException(etype, exception, trace)
-
-        st = f"Unexpected exception while handling client request resource {self.path}\n"
-
-        flag = False
-
-        for stack in tb.stack:
-            stack: traceback.FrameSummary
-            if "handler_root" in stack.filename and not flag:
-                flag = True
-                st += "Caused by: " + self.get_class_chain(etype) + ": " + str(tb) + "\n"
-            st += self.build_trace(stack)
-
-        if not flag:
-            st = f"Unexpected exception while handling client request resource {self.path}\n"
-            for stack in tb.stack[:len(tb.stack) - 1]:
-                st += self.build_trace(stack)
-            st += "Caused by: " + self.get_class_chain(etype) + ": " + str(tb) + "\n"
-            stack = tb.stack[len(tb.stack) - 1]
-            st += self.build_trace(stack)
-
-        self.logger.warn(self.parse_thread_name(threading.current_thread().getName()), st)
-
-    @staticmethod
-    def build_trace(stack):
-        return "        at " + Handler.normalize_file_name(stack.filename) + "." + stack.name \
-               + "(" + os.path.basename(stack.filename) + ":" + str(stack.lineno) \
-               + "): " + stack.line + "\n"
-
-    @staticmethod
-    def normalize_file_name(path: str):
-        das = path.split("src")
-        del das[0]
-        da = "".join(das)
-        da = da.replace("\\", ".").replace("/", ".")
-        return da[1:-3]
-
-    @staticmethod
-    def get_class_chain(clazz):
-        mod = clazz.__module__
-        if mod == "builtins":
-            return clazz.__qualname__
-        return f"{mod}.{clazz.__qualname__}"

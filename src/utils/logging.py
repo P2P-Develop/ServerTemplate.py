@@ -1,6 +1,7 @@
 import datetime
 import os
 import tarfile
+import threading
 
 
 class Type:
@@ -80,3 +81,14 @@ class Logger:
 
     def format(self, name, type):
         return "[" + datetime.datetime.now().strftime("%H:%M:%S") + " " + type + "/" + name + "] "
+
+
+def parse_thread_name(name):
+    name = str.strip(name, "ThreadPoolExecutor-")
+    splittext = str.split(name, "_")
+
+    return f"thread-{splittext[0]}-{splittext[1]}"
+
+
+def get_log_name():
+    return parse_thread_name(threading.current_thread().getName())
