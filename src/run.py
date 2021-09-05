@@ -15,6 +15,9 @@ def loadConfig(fileName):
         return yaml.safe_load(r)
 
 
+global main
+
+
 class Main:
     def __init__(self):
         self.log = Logger(name="main", dir="logs")

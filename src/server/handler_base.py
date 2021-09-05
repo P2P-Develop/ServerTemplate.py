@@ -78,12 +78,27 @@ class ServerHandler(StreamRequestHandler):
     def __init__(self, request, client_address, server):
         super().__init__(request, client_address, server)
         self.response_cache = []
+        self.multiple = False
 
     def handle(self):
         try:
             req = HTTPParser(self.rfile,
                              main.config["system"]["request"]["default_version"],
-                             main.config["system"]["request"]["header_limit"])
+                             main.config["system"]["request"]["header_limit"]
+                             ).parse()
+
+            if req.protocol >= "HTTP/1.1":
+                self.multiple = True
+
+            if "Connection" in req.headers:
+                if req.headers["Connection"] == "keep-alive":
+                    self.multiple = True
+                elif req.headers["Connection"] == "close":
+                    self.multiple = False
+
+            if "Expect" in req.headers:
+                if req.headers["Expect"] == "100-continue":
+                    req.expect_100 = True
 
             self.handle_request(req)
         except ParseException as e:
@@ -146,7 +161,7 @@ class HTTPParser:
 
             self._header(d.rstrip("\r\n"))
             count += 1
-        return self
+        return self._response
 
     def _header(self, data):
         kv = data.split(":", 1)
@@ -179,12 +194,13 @@ class HTTPParser:
 
 
 class HTTPRequest:
-    def __init__(self, method=None, path=None, protocol=None, headers=None, rfile=None):
+    def __init__(self, method=None, path=None, protocol=None, headers=None, rfile=None, expect_100=False):
         self.method = method
         self.path = path
         self.protocol = protocol
         self.headers = headers
         self.rfile = rfile
+        self.expect_100 = expect_100
 
 
 class ParseException(Exception):

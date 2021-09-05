@@ -7,6 +7,9 @@ class Header:
         self.name = _(name)
         self.value = _(value)
 
+    def __eq__(self, other):
+        return self.value.lower() == other.lower()
+
 
 class DecoratedHeader(Header):
     def __init__(self, name, value):
