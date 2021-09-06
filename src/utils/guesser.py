@@ -7,21 +7,21 @@ def guess(acceptable, provided, default):
     #        write_type(body, "application/octet-stream")
     #        return
 
-    if type(acceptable) != Header and len(acceptable) == len(provided) == 0:
+    if not isinstance(acceptable, Header) and len(acceptable) == len(provided) == 0:
         return default
 
     found = {}
 
     for content_type in provided:
-        if type(acceptable) == Header:
+        if isinstance(acceptable, Header):
             if acceptable == content_type:
                 return content_type
             else:
                 continue
 
         if content_type in acceptable:
-            ct = acceptable[content_type] if type(acceptable) == MultiValueHeader else acceptable
-            if type(ct) == DecoratedHeader:
+            ct = acceptable[content_type] if isinstance(acceptable, MultiValueHeader) else acceptable
+            if isinstance(ct, DecoratedHeader):
                 try:
                     found[ct.value] = float(ct["q"])
                 except ValueError:
