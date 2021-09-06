@@ -21,5 +21,5 @@ class CommandLoad(CommandEntry):
         if not os.path.exists(path):
             self.logger.error("main", "Path not found.")
             return
-        endpoint.loader.load()
+        endpoint.loader.load("src/server/handler_root/")
         self.logger.info("main", "Endpoints loaded.")
