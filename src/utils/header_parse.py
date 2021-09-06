@@ -10,6 +10,9 @@ class Header:
     def __eq__(self, other):
         return self.value.lower() == other.lower()
 
+    def __str__(self):
+        return self.value
+
 
 class DecoratedHeader(Header):
     def __init__(self, name, value):
@@ -20,11 +23,13 @@ class DecoratedHeader(Header):
 
     def _parse(self):
         dc = self.value.split(";")
-        if len(dc) < 1:
-            self.raw_value = dc[0]
-        for dv in dc:
+        if len(dc) > 1:
+            self.value = dc[0]
+        for i, dv in enumerate(dc):
+            if i == 0:
+                continue
             kv = dv.split("=", 1)
-            if len(kv) == 2:
+            if len(kv) == 1:
                 self.decoration[_(kv[0])] = None
                 continue
             elif len(kv) == 0:
@@ -41,6 +46,7 @@ class DecoratedHeader(Header):
 class MultiValueHeader(Header):
     def __init__(self, name, value):
         super().__init__(name, "")
+        self.raw_value = value
         self.value = {}
         self._parse(value)
 
@@ -48,7 +54,7 @@ class MultiValueHeader(Header):
         dc = value.split(",")
         for dv in dc:
             cn = _(dv).lower()
-            if ";" in value:
+            if ";" in dv:
                 self.value[cn] = DecoratedHeader(self.name, dv)
                 continue
             self.value[cn] = Header(self.name, dv)
@@ -58,6 +64,9 @@ class MultiValueHeader(Header):
 
     def __contains__(self, item):
         return item.lower() in self.value
+
+    def __str__(self):
+        return self.raw_value
 
 
 class HeaderSet:

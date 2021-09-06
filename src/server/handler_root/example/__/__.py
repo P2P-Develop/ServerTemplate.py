@@ -15,9 +15,9 @@ import route
                     types="application/json",
                     responses=[
                         Response(200, doc=Document("Successful response.", example={
-                            "success": True,
                             "result": "Hello, world!"
                         }))
                     ]))
 def on_get(handler, params):
+    q = params["text"] * params["count"]
     return params["text"] * params["count"]

@@ -99,48 +99,52 @@ class Handler(ServerHandler):
                 self.send_header(header[0], header[1])
             self.end_header()
             if handled.body is not None:
-                self.send_body(handled.body, handled.raw)
+                self._send_body(handled.body, handled.raw, handled.content_type)
 
         if handled is not None:
             v = str(handled).encode("utf-8")
             self.send_response(200)
-            self.send_header("Content-Type", "text/plain")
-            self.send_header("Connection", "close")
-            self.end_header()
-            self.wfile.write(v)
+            self._send_body(v)
 
         return True
 
-    def send_body(self, body, raw):
+    supported_type = {
+        "application/x-www-form-urlencoded":
+            lambda body, ct: (parse.urlencode(body) if type(body) == dict else parse.quote(str(body))).encode("utf-8"),
+        "application/json": lambda body, ct: json.JSONEncoder().encode(body).encode("utf-8"),
+        "application/octet-stream": lambda body, ct: body
+    }
+
+    def write_type(self, body, content_type):
+        if content_type in self.supported_type:
+            self.send_body(content_type, self.supported_type[content_type](body, content_type))
+
+    def send_body_guess_type(self, body, accept, conn_type):
+        if len(conn_type) == 0:
+            if type(body) == bytes:
+                self.write_type(body, "application/octet-stream")
+        pass
+
+
+
+    def _send_body(self, body, raw=False, content_types=None):
         if raw:
             self.wfile.write(body)
             return
 
-        if "Accept" not in self.request.headers and "accept" not in self.request.headers:
-            self.send_body_with_length("application/json", json.dumps(body).encode("utf-8"))
-            return
+        accept = self.request.headers["Accept"] if "Accept" in self.request.headers else ""
 
-        accept = self.request.headers["Accept"] if "Accept" in self.request.headers else self.request.headers["accept"]
+        if content_types is not None:
+            if type(content_types) == str:
+                self.send_body_guess_type(body, accept, [content_types])
+            elif type(content_types) == list or type(content_types) == tuple:
+                self.send_body_guess_type(body, self.request.headers["Accept"], content_types)
 
-        if "application/x-www-form-urlencoded" in accept:
-            if type(body) is dict:
-                self.send_body_with_length("application/x-www-form-urlencoded",
-                                           parse.urlencode(body, True).encode("utf-8"))
-            elif type(body) is bytes:
-                self.send_body_with_length("application/octet-stream", body)
-                self.wfile.write(body)
-            else:
-                self.send_body_with_length("application/x-www-form-urlencoded",
-                                           parse.urlencode(body, True).encode("utf-8"))
-        elif True or "application/json" in accept or "text/json" in accept:  # TODO: More options
-            if type(body) is not bytes:
-                self.send_body_with_length("application/json", json.dumps(body).encode("utf-8"))
-            else:
-                self.send_body_with_length("application/octet-stream", body)
+        self.send_body_guess_type(body, accept, [])
 
     def send_body_with_length(self, type, body):
         self.send_header("Content-Length", len(body))
-        self.send_header("Content-Type", type)
+        self.send_header("Content-Type", content_type)
         self.end_header()
         self.wfile.write(body)
 
