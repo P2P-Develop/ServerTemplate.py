@@ -5,6 +5,8 @@
 
 ## Quickstart
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/ebbfeaab7736420c9ff81aa1bf73a2bc)](https://app.codacy.com/gh/P2P-Develop/ServerTemplate.py?utm_source=github.com&utm_medium=referral&utm_content=P2P-Develop/ServerTemplate.py&utm_campaign=Badge_Grade_Settings)
+
 ### Requirements
 
 - PyYAML
