@@ -1,6 +1,15 @@
 <div align="center">
   <h1>ServerTemplate.py</h1>
   <p>Simple API server template and utilities for Python.</p>
+  <a href="https://github.com/P2P-Develop/ServerTemplate.py/blob/main/LICENSE">
+    <img alt="GitHub license" src="https://img.shields.io/github/license/P2P-Develop/ServerTemplate.py?style=flag-square">
+  </a>
+  <a href="https://www.codacy.com/gh/P2P-Develop/ServerTemplate.py/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=P2P-Develop/ServerTemplate.py&amp;utm_campaign=Badge_Grade">
+    <img alt="Codacy grade" src="https://img.shields.io/codacy/grade/91a6fa96fccf431c8c89fa2181dce966?style=flat-square">
+  </a>
+  <a href="https://github.com/P2P-Develop/ServerTemplate.py/commits">
+    <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/P2P-Develop/ServerTemplate.py?style=flat-square">  
+  </a>
 </div>
 
 ## Quickstart
