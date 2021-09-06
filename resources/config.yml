@@ -9,3 +9,4 @@ system:
     header_readlimit: 65536
     default_protocol: "HTTP/0.9"
     header_limit: 127
+    default_content_type: "application/json"

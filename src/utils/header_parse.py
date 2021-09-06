@@ -42,6 +42,20 @@ class DecoratedHeader(Header):
     def __contains__(self, item):
         return item.lower() in self.decoration
 
+    def get(self, name):
+        name = name.lower()
+
+        if name not in self.decoration:
+            raise ValueError("Decoration '%s' not found" % name)
+
+        return self.decoration[name]
+
+    def __getitem__(self, item):
+        return self.get(item)
+
+    def __len__(self):
+        return len(self.decoration)
+
 
 class MultiValueHeader(Header):
     def __init__(self, name, value):
@@ -67,6 +81,20 @@ class MultiValueHeader(Header):
 
     def __str__(self):
         return self.raw_value
+
+    def get(self, name):
+        name = name.lower()
+
+        if name not in self.value:
+            raise ValueError("Value '%s' not found" % name)
+
+        return self.value[name]
+
+    def __getitem__(self, item):
+        return self.get(item)
+
+    def __len__(self):
+        return len(self.value)
 
 
 class HeaderSet:
@@ -99,3 +127,6 @@ class HeaderSet:
 
     def __getitem__(self, item):
         return self.get(item)
+
+    def __len__(self):
+        return len(self._headers)

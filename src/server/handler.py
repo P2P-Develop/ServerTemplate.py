@@ -8,6 +8,7 @@ import endpoint
 import route
 from utils.stacktrace import get_stack_trace
 from server.handler_base import ServerHandler, HTTPRequest
+from utils.guesser import guess
 
 
 class Handler(ServerHandler):
@@ -102,9 +103,8 @@ class Handler(ServerHandler):
                 self._send_body(handled.body, handled.raw, handled.content_type)
 
         if handled is not None:
-            v = str(handled).encode("utf-8")
             self.send_response(200)
-            self._send_body(v)
+            self._send_body(handled)
 
         return True
 
@@ -116,31 +116,28 @@ class Handler(ServerHandler):
     }
 
     def write_type(self, body, content_type):
-        if content_type in self.supported_type:
+        n = content_type in self.supported_type
+        if n:
             self.send_body(content_type, self.supported_type[content_type](body, content_type))
 
-    def send_body_guess_type(self, body, accept, conn_type):
-        if len(conn_type) == 0:
-            if type(body) == bytes:
-                self.write_type(body, "application/octet-stream")
-        pass
-
-
+        return n
 
     def _send_body(self, body, raw=False, content_types=None):
         if raw:
             self.wfile.write(body)
             return
 
+        default = self.config["system"]["request"]["default_content_type"]
         accept = self.request.headers["Accept"] if "Accept" in self.request.headers else ""
 
         if content_types is not None:
             if type(content_types) == str:
-                self.send_body_guess_type(body, accept, [content_types])
+                self.write_type(body, guess(accept, [content_types], default))
+                return
             elif type(content_types) == list or type(content_types) == tuple:
-                self.send_body_guess_type(body, self.request.headers["Accept"], content_types)
-
-        self.send_body_guess_type(body, accept, [])
+                self.write_type(body, guess(accept, content_types, default))
+                return
+        self.write_type(body, guess(accept, self.supported_type.keys(), default))
 
     def send_body(self, content_type, body):
         self.send_header("Content-Length", len(body))
