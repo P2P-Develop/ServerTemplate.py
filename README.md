@@ -10,6 +10,9 @@
   <a href="https://github.com/P2P-Develop/ServerTemplate.py/commits">
     <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/P2P-Develop/ServerTemplate.py?style=flat-square">  
   </a>
+  <a href="https://www.python.org/downloads/">
+    <img alt="Supported versions" src="https://img.shields.io/badge/python-3.7%7C3.8%7C3.9-%234584b6?style=flat-square">
+  </a>
 </div>
 
 ## Quickstart
