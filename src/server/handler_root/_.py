@@ -1,5 +1,4 @@
 from endpoint import *
-import route
 
 
 # In this example, the string specified by the text parameter will be repeated the specified number of times.
