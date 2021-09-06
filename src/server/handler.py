@@ -142,7 +142,7 @@ class Handler(ServerHandler):
 
         self.send_body_guess_type(body, accept, [])
 
-    def send_body_with_length(self, type, body):
+    def send_body(self, content_type, body):
         self.send_header("Content-Length", len(body))
         self.send_header("Content-Type", content_type)
         self.end_header()
