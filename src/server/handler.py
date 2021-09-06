@@ -82,7 +82,7 @@ class Handler(ServerHandler):
 
         try:
             handled = ep.handle(self, params, queries, path_param)
-        except Exception as e:
+        except Exception:
             get_stack_trace("handler_root", *sys.exc_info())
             return
 

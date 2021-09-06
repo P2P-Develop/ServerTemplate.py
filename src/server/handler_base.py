@@ -76,7 +76,6 @@ default_version = "HTTP/0.9"
 read_limit = 65536
 header_limit = 100
 
-import http.server
 
 class ServerHandler(StreamRequestHandler):
     def __init__(self, request, client_address, server):
