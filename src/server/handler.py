@@ -69,9 +69,8 @@ class Handler(ServerHandler):
                     return
 
             route.post_error(self, route.Cause.EP_NOTFOUND)
-        except Exception as e:
+        except Exception:
             get_stack_trace("server", *sys.exc_info())
-            pass
 
     def dynamic_handle(self, path, params, queries):
         path_param = {}
@@ -110,7 +109,7 @@ class Handler(ServerHandler):
 
     supported_type = {
         "application/x-www-form-urlencoded":
-            lambda body, ct: (parse.urlencode(body) if type(body) == dict else parse.quote(str(body))).encode("utf-8"),
+            lambda body, ct: (parse.urlencode(body) if isinstance(body, dict) else parse.quote(str(body))).encode("utf-8"),
         "application/json": lambda body, ct: json.JSONEncoder().encode(body).encode("utf-8"),
         "application/octet-stream": lambda body, ct: body
     }
@@ -131,10 +130,10 @@ class Handler(ServerHandler):
         accept = self.request.headers["Accept"] if "Accept" in self.request.headers else ""
 
         if content_types is not None:
-            if type(content_types) == str:
+            if isinstance(content_types, str):
                 self.write_type(body, guess(accept, [content_types], default))
                 return
-            elif type(content_types) == list or type(content_types) == tuple:
+            elif isinstance(content_types, list) or isinstance(content_types, tuple):
                 self.write_type(body, guess(accept, content_types, default))
                 return
         self.write_type(body, guess(accept, self.supported_type.keys(), default))
@@ -161,7 +160,7 @@ class Handler(ServerHandler):
                     if content_type in ["application/json", "text/json", "application/x-json"]:
                         req_body = self.rfile.read(content_len).decode("utf-8")
                         args = json.JSONDecoder().decode(req_body)
-                        if type(args) != dict:
+                        if not isinstance(args, dict):
                             args = {}
 
                     elif content_type == "application/x-www-form-urlencoded":
@@ -189,7 +188,7 @@ class Handler(ServerHandler):
                 else:
                     route.post_error(self, route.Cause.MISSING_FIELD, "Content-Type header is required.")
                     return
-        except:
+        except Exception:
             get_stack_trace("server", *sys.exc_info())
 
     def do_auth(self):
