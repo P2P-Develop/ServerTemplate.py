@@ -289,10 +289,10 @@ class EndPoint(Documented):
 
 class Response(Documented):
     def __init__(self, code: int = 0,
-                 headers: dict = None,
                  body=None,
                  raw_body=False,
                  content_type=None,
+                 headers: dict = None,
                  doc: Document = None):
         super().__init__(doc)
         self.code = code
