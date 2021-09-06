@@ -8,150 +8,6 @@ import endpoint
 import route
 import yaml
 
-_HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>%%NAME%%</title>
-    <link href=
-        "https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700"
-    rel="stylesheet">
-    <link rel="stylesheet" type="text/css"
-        href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui.css">
-    <style>
-        html{
-            box-sizing:border-box;
-            overflow:-moz-scrollbars-vertical;
-            overflow-y:scroll;
-        }
-        [class~=swagger-ui] select,.swagger-ui .scheme-container,[class~=swagger-ui] [class~=info] [class~=title]{
-            background-color:#252525;
-        }
-        *:before,*,*:after{
-            box-sizing:inherit;
-        }
-        [class~=swagger-ui] [class~=opblock] [class~=opblock-section-header] label,
-        [class~=swagger-ui] [class~=opblock-description-wrapper] p,[class~=swagger-ui] [class~=parameter__deprecated],
-        [class~=swagger-ui],[class~=swagger-ui] [class~=responses-inner] h4,
-        [class~=swagger-ui] [class~=opblock-title_normal] p,
-        [class~=swagger-ui] [class~=opblock] [class~=opblock-section-header] h4,[class~=swagger-ui] textarea,
-        [class~=swagger-ui] [class~=info] [class~=base-url],[class~=swagger-ui] [class~=btn],[class~=swagger-ui] label,
-        [class~=swagger-ui] [class~=parameter__name],[class~=swagger-ui] [class~=parameter__type],
-        [class~=swagger-ui] [class~=parameter__in],[class~=swagger-ui] [class~=response-col_status],
-        .swagger-ui .opblock .opblock-summary-description,[class~=swagger-ui] [class~=info] table,
-        [class~=swagger-ui] [class~=info] [class~=title],.swagger-ui .responses-inner h5,
-        [class~=swagger-ui] table thead tr th,[class~=swagger-ui] [class~=opblock-external-docs-wrapper] p,
-        [class~=swagger-ui] table thead tr td,
-        [class~=swagger-ui] [class~=info] [class~=title],body,[class~=swagger-ui] select,.swagger-ui .scheme-container,
-        [class~=swagger-ui] [class~=info] p,[class~=swagger-ui] [class~=tab] li,[class~=swagger-ui] [class~=info] li,
-        [class~=swagger-ui] a[class~=nostyle],
-        .swagger-ui .dialog-ux .modal-ux-header h3,
-        .swagger-ui .dialog-ux .modal-ux-content h4,
-        .swagger-ui .dialog-ux .modal-ux-content p,
-        .swagger-ui .model {
-            color:#ccc !important;
-        }
-        [class~=swagger-ui] [class~=opblock] [class~=opblock-section-header]{
-            background-color:transparent;
-        }
-        body{
-            margin-left:0;
-            margin-right:0;
-            background-color:#252525;
-        }
-
-        * {
-            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI Variable","Segoe UI",
-                system-ui,ui-sans-serif,Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji" !important;
-        }
-
-        pre code span {
-            font-family: ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace !important;
-        }
-
-        ::-webkit-scrollbar {width: 12px; height: 6px;}
-        ::-webkit-scrollbar-thumb {-webkit-border-radius: 10px;}
-        ::-webkit-scrollbar-track:vertical {-webkit-box-shadow: -1px 0 0 #ededed;}
-        ::-webkit-scrollbar-track {background-color: transparent;}
-        ::-webkit-scrollbar {width: 12px;}
-        ::-webkit-scrollbar-thumb {background-color: rgba(115, 115, 115, 0.2);}
-        ::-webkit-scrollbar-thumb { background-color: rgba(166, 166, 166, 0.27); }
-
-        .swagger-ui .opblock {
-            background: rgba(97,175,254, .2);
-        }
-
-        .swagger-ui .dialog-ux .modal-ux, .swagger-ui .dialog-ux .modal-ux-header {
-            background: #252525;
-            border-color: #4f4f4f;
-            border-width: 2px;
-        }
-
-        .swagger-ui .opblock-tag {
-            border-color: #aaa;
-        }
-
-        svg.arrow,
-        .authorization__btn svg {
-            fill: #d4dee7;
-        }
-
-        input {
-            background: #222 !important;
-            border-color: #555 !important;
-            color: #ccc;
-        }
-
-        .swagger-ui .btn.execute {
-            color: #fff !important;
-        }
-    </style>
-</head>
-<body>
-<div id="swagger-ui"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui-bundle.js"> </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.43.0/swagger-ui-standalone-preset.js"> </script>
-<script>
-    window.onload = function() {
-        window.ui = SwaggerUIBundle({
-            spec: "",
-            dom_id: '#swagger-ui',
-            deepLinking: true,
-            presets: [
-                SwaggerUIBundle.presets.apis,
-                SwaggerUIStandalonePreset
-            ],
-            plugins: [
-                SwaggerUIBundle.plugins.DownloadUrl
-            ]
-        })
-    }
-</script>
-</body>
-</html>
-"""
-
-_SWAGGER_TEMPLATE = """
-swagger: "2.0"
-info:
-  description: "API Docs"
-  title: "API Document"
-  version: "latest"
-host: "127.0.0.1"
-basePath: "/"
-schemes:
-- http
-securityDefinitions:
-  token:
-    type: "apiKey"
-    name: "Authorization"
-    in: "header"
-security:
-  - token: []
-
-"""
-
 
 def printf(string):
     print(string, end="")
@@ -191,7 +47,8 @@ def generate_html(obj: dict):
     print("Generating docs html...")
     rz = json.dumps(obj)
     with open("docs/docs.html", "w", encoding="utf-8") as w:
-        w.write(_HTML_TEMPLATE.replace("\"\"", rz).replace("%%NAME%%", obj["info"]["title"]))
+        with open("resources/swagger.templatr.html", "r", encoding="utf-8") as j:
+            w.write(j.read().replace("\"\"", rz).replace("%%NAME%%", obj["info"]["title"]))
 
 
 def save(obj: dict):
@@ -271,8 +128,7 @@ def b(ex):
                         properties[zz[0]]["items"]["properties"][hb[0]] = bz
                     else:
                         properties[zz[0]]["items"]["properties"][hb[1]] = bz
-                    i = i + 1
-                    pass
+                    i += 1
             elif a_t_field is not None:
                 properties[zz[0]]["example"] = zz[1]
 
@@ -331,7 +187,7 @@ def normalize_responses(obj: dict):
             staging["summary"] = staging["about"]
             del staging["about"]
 
-            if type(staging["returns"]) is str:
+            if isinstance(staging["returns"], str):
                 staging["produces"] = [staging["returns"]]
             else:
                 staging["produces"] = staging["returns"]
@@ -357,28 +213,10 @@ def normalize_responses(obj: dict):
     return normalized
 
 
-"""
-def docs():
-    return {
-        "get": {
-            "about": "Outputs the specified text.",
-            "returns": "application/json",
-            200: {
-                "about": "Successful response.",
-                "example": {
-                    "success": True,
-                    "result": "Hello, world!"
-                }
-            }
-        }
-    }
-"""
-
-
 def convert_annotation(obj):
     swaggers = {}
     for oj in obj.items():
-        if type(oj[1]) != endpoint.EndPoint:
+        if not isinstance(oj[1], endpoint.EndPoint):
             swaggers[oj[0]] = oj[1]
             continue
         file = oj[1]
@@ -501,7 +339,7 @@ def convert_annotation(obj):
 def load_as_swagger(obj):
     swaggers = {}
     for file in obj:
-        if type(file) == endpoint.EndPoint:
+        if isinstance(file, endpoint.EndPoint):
             swaggers[uuid.uuid4().hex] = file
             continue
 
@@ -552,7 +390,8 @@ def load_as_module(obj):
 def load_yaml(obj):
     global swagger
     printf("Loading template...")
-    swagger = yaml.load(_SWAGGER_TEMPLATE, Loader=yaml.FullLoader)
+    with open("resources/swagger_template.yml", "r", encoding="utf-8") as w:
+        swagger = yaml.safe_load(w)
     print("Done")
     return obj
 

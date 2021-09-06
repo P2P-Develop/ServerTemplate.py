@@ -1,0 +1,20 @@
+swagger: "2.0"
+info:
+  description: "API Docs"
+  title: "API Document"
+  version: "latest"
+
+host: "127.0.0.1"
+basePath: "/"
+schemes:
+  - http
+
+securityDefinitions:
+  token:
+    type: "apiKey"
+    name: "Authorization"
+    in: "header"
+security:
+  - token: []
+
+paths: {}
