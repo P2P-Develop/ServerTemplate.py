@@ -99,8 +99,8 @@ class Handler(ServerHandler):
             for header in handled.headers.items():
                 self.send_header(header[0], header[1])
             self.end_header()
-            if handled.body is not None:
-                self._send_body(handled.body, handled.raw, handled.content_type)
+            if handled.body_data is not None:
+                self._send_body(handled.body_data, handled.raw, handled.cont_type)
 
         if handled is not None:
             self.send_response(200)
