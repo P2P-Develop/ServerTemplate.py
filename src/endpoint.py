@@ -41,7 +41,7 @@ class Document:
             raise ValueError("Title or Summary must not be None.")
         self.title = summary if title is None else title
         # self.description = desc if description is None else description
-        self.types = [types] if type(types) == str else types
+        self.types = [types] if isinstance(types, str) else types
         self.example = example
         self.security = security
         self.more = {} if more is None else more
@@ -56,9 +56,7 @@ def http(method, require_auth: bool = True, args: tuple = (), docs: Document = N
         path = path.replace(os.sep, "/")
         pp = 0
 
-        if type(args) == list:
-            arg3 = list(args)
-        elif type(args) != tuple:
+        if not isinstance(args, tuple) and not isinstance(args, list):
             arg3 = (args,)
         else:
             arg3 = args
@@ -69,7 +67,7 @@ def http(method, require_auth: bool = True, args: tuple = (), docs: Document = N
             if arg.arg_in == "path":
                 pp += 1
 
-        if type(method) is str:
+        if isinstance(method, str):
             if method == "*":
                 fig = method.split("|")
                 for met in Method.values():
@@ -387,7 +385,7 @@ class EPManager:
             dic = self.index_tree
         for item in dic.items():
             i = item[1]
-            if type(i) == dict:
+            if isinstance(i, dict):
                 result += self.enumerate(i)
             else:
                 result.append(i)
@@ -448,7 +446,7 @@ class EPManager:
         slt = path.split("/")
         args = []
 
-        for i, part in enumerate(slt, 1):
+        for part in slt:
             if part in cursor:
                 cursor = cursor[part]
                 continue

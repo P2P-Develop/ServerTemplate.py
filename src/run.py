@@ -38,7 +38,6 @@ class Main:
         cmd = input()
         self.log.input(cmd)
         self.cmd.exec(cmd)
-        pass
 
     def main(self):
         self.log.info("main", "Starting...")

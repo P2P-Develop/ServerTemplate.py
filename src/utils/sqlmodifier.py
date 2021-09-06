@@ -35,7 +35,7 @@ def prepare(query, data):
     for d in data:
         count += 1
         dn = str(d)
-        if type(d) == str and count % 2 == 0:
+        if isinstance(d, str) and count % 2 == 0:
             dn = "'" + dn.replace("\\", "\\\\").replace("'", "\\'") + "'"
         qs = qs.replace("?", dn, 1)
     return qs
@@ -64,11 +64,11 @@ class DataBase:
         self.connection.commit()
 
     def _get_base(self, base, data=None):
-        if data is not None and type(data) == dict:
+        if data is not None and isinstance(data, dict):
             base += " WHERE "
             base += _gen_qas(data)
             data = _flatmap(data)
-        elif data is not None and type(data) == list:
+        elif data is not None and isinstance(data, list):
             pass
         else:
             data = []

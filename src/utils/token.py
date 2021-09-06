@@ -32,10 +32,10 @@ class Token:
             return self.token
 
         token = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
-        hash = hashlib.blake2b(token.encode("utf-8"), salt=self.salt).hexdigest()
+        hash_token = hashlib.blake2b(token.encode("utf-8"), salt=self.salt).hexdigest()
 
-        self.save(hash)
-        self.token = hash
+        self.save(hash_token)
+        self.token = hash_token
 
         return token
 
