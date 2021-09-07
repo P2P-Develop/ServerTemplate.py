@@ -5,6 +5,10 @@ system:
     # Server listening port.
     # REQUIRED
     #port: 25500
+  log:
+    default:
+      handlers: [ "console", "rotating-file" ]
+    loggers:
   request:
     header_readlimit: 65536
     default_protocol: "HTTP/0.9"
