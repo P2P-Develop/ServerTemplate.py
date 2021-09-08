@@ -85,7 +85,7 @@ class AbstractHandlerBase:
     def handle_request(self) -> None:
         pass
 
-    def send_header(self, name: str, value: str, server_version: str) -> None:
+    def send_header(self, name: str, value: any, server_version: str) -> None:
         pass
 
     def flush_header(self) -> None:
@@ -105,7 +105,7 @@ class CachedHeader(AbstractHandlerBase):
 
     def send_header(self, name, value, server_version="HTTP/1.1"):
         if server_version != "HTTP/0.9":
-            self.response_cache.append(f"{name}: {value}\r\n".encode("iso-8859-1"))
+            self.response_cache.append(f"{name}: {str(value)}\r\n".encode("iso-8859-1"))
 
     def flush_header(self):
         if not hasattr(self, "response_cache"):
