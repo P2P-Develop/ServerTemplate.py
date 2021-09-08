@@ -17,7 +17,7 @@ def get_stack_trace(base_module, exception_type, exception, trace):
         st += build_trace(stack)
 
     if not flag:
-        st = f"Unexpected exception while handling client request resource '{self.path}'\n"
+        st = f"Unexpected exception while handling client request resource '{path}'\n"
 
         for stack in tb.stack[:len(tb.stack) - 1]:
             st += build_trace(stack)
