@@ -7,27 +7,11 @@ def get_stack_trace(base_module, exception_type, exception, trace):
 
     st = f"Unexpected exception while handling client request resource '{path}'\n"
 
-    flag = False
-
     for stack in tb.stack:
         stack: traceback.FrameSummary
-        if base_module in stack.filename and not flag:
-            flag = True
+        if base_module in stack.filename:
             st += "Caused by: " + get_class_chain(exception_type) + ": " + str(tb) + "\n"
         st += build_trace(stack)
-
-    if not flag:
-        st = f"Unexpected exception while handling client request resource '{self.path}'\n"
-
-        for stack in tb.stack[:len(tb.stack) - 1]:
-            st += build_trace(stack)
-
-        st += "Caused by: " + get_class_chain(exception_type) + ": " + str(tb) + "\n"
-
-        stack = tb.stack[len(tb.stack) - 1]
-
-        st += build_trace(stack)
-
     return st
 
 
