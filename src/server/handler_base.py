@@ -101,22 +101,22 @@ class AbstractHandlerBase:
 class CachedHeader(AbstractHandlerBase):
     def __init__(self, request_handler):
         self.rh = request_handler
-        self.response_cache = []
+        self._response_cache = []
 
     def send_header(self, name, value, server_version="HTTP/1.1"):
         if server_version != "HTTP/0.9":
-            self.response_cache.append(f"{name}: {str(value)}\r\n".encode("iso-8859-1"))
+            self._response_cache.append(f"{name}: {str(value)}\r\n".encode("iso-8859-1"))
 
     def flush_header(self):
-        if not hasattr(self, "response_cache"):
+        if not hasattr(self, "_response_cache"):
             return
-        self.rh.wfile.write(b"".join(self.response_cache))
-        self.response_cache = []
+        self.rh.wfile.write(b"".join(self._response_cache))
+        self._response_cache = []
 
     def end_header(self):
-        if not hasattr(self, "response_cache"):
-            self.response_cache = []
-        self.response_cache.append(b"\r\n")
+        if not hasattr(self, "_response_cache"):
+            self._response_cache = []
+        self._response_cache.append(b"\r\n")
         self.flush_header()
 
     def send_response(self, code, message=None, server_version="HTTP/1.1"):
@@ -124,8 +124,8 @@ class CachedHeader(AbstractHandlerBase):
             if message is None and code in responses:
                 message = responses[code]
             if not hasattr(self, "response_cache"):
-                self.response_cache = []
-            self.response_cache.append(f"{server_version} {code} {message}\r\n".encode("iso-8859-1"))
+                self._response_cache = []
+            self._response_cache.append(f"{server_version} {code} {message}\r\n".encode("iso-8859-1"))
 
 
 class ServerHandler(StreamRequestHandler, CachedHeader, AbstractHandlerBase):
