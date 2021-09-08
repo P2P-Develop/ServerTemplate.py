@@ -79,6 +79,9 @@ header_limit = 100
 
 
 class AbstractHandlerBase:
+    def handle(self) -> None:
+        pass
+
     def handle_parse_error(self, cause: str) -> None:
         pass
 
@@ -99,8 +102,8 @@ class AbstractHandlerBase:
 
 
 class CachedHeader(AbstractHandlerBase):
-    def __init__(self, request_handler):
-        self.rh = request_handler
+    def __init__(self):
+        self.wfile = None
         self._response_cache = []
 
     def send_header(self, name, value, server_version="HTTP/1.1"):
@@ -110,7 +113,7 @@ class CachedHeader(AbstractHandlerBase):
     def flush_header(self):
         if not hasattr(self, "_response_cache"):
             return
-        self.rh.wfile.write(b"".join(self._response_cache))
+        self.wfile.write(b"".join(self._response_cache))
         self._response_cache = []
 
     def end_header(self):
@@ -130,13 +133,16 @@ class CachedHeader(AbstractHandlerBase):
 
 class ServerHandler(StreamRequestHandler, CachedHeader, AbstractHandlerBase):
     def __init__(self, request, client_address, server):
-        StreamRequestHandler.__init__(self, request, client_address, server)
-        CachedHeader.__init__(self, self)
+        CachedHeader.__init__(self)
         self.response_cache = []
         self.multiple = False
         self.request = None
+        StreamRequestHandler.__init__(self, request, client_address, server)
 
     def handle(self):
+        self._handle()
+
+    def _handle(self):
         try:
             req = HTTPParser(self, self.rfile).parse()
 
@@ -159,6 +165,15 @@ class ServerHandler(StreamRequestHandler, CachedHeader, AbstractHandlerBase):
         except ParseException as e:
             self.handle_parse_error(e.cause)
 
+    def send_header(self, name, value, server_version="HTTP/1.1"):
+        if name == "Connection":
+            if value.lower() == "keep-alive":
+                self.multiple = True
+            elif value.lower() == "close":
+                self.multiple = False
+
+        super().send_header(name, value, server_version)
+
 
 def decode(line):
     return str(line, "iso-8859-1")
@@ -176,7 +191,7 @@ class HTTPParser:
             if len(read) > read_limit:
                 raise ParseException("URI_TOO_LONG")
             return read
-        except any as e:
+        except Exception as e:
             if type(e) is ParseException:
                 raise e
             stacktrace.get_stack_trace("server", *exc_info())
