@@ -18,8 +18,8 @@ class Handler(ServerHandler):
         self.token = server.token
         self.instance = server.instance
         self.config = self.instance.config
-        super().__init__(request, client_address, server)
         self.request = None
+        super().__init__(request, client_address, server)
 
     def handle_request(self):
         self.handle_switch()
