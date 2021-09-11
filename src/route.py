@@ -10,7 +10,7 @@ def write(handler, code, txt, content_type="application/json"):
     handler.send_response(code)
     handler.send_header("Content-Type", content_type)
     ln = txt.encode("utf-8")
-    handler.send_header("Content-Length", ln)
+    handler.send_header("Content-Length", len(ln))
     handler.end_header()
     handler.wfile.write(ln)
 
