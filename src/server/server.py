@@ -15,9 +15,12 @@ class Server(ThreadingTCPServer, object):
     instance: Main
     thread: threading.Thread
 
-    def __init__(self, address, handler, workers):
+    def __init__(self, address, handler, workers, instance, token_vault):
         super().__init__(address, handler)
 
+        self.instance = instance
+        self.logger = instance.log
+        self.token = token_vault
         self.executor = ThreadPoolExecutor(max_workers=workers)
 
     def process_request(self, request, client_address):
@@ -32,11 +35,8 @@ class Server(ThreadingTCPServer, object):
         self.socket.bind(self.server_address)
 
 
-def start_server(instance, port, logger, token):
-    with Server(("", port), Handler, 4) as server:
-        server.logger = logger
-        server.token = token
-        server.instance = instance
+def start_server(instance, port, token):
+    with Server(("", port), Handler, 4, instance, token) as server:
         server.allow_reuse_address = True
 
         try:
@@ -47,9 +47,9 @@ def start_server(instance, port, logger, token):
             server.server_close()
 
 
-def bind(port, instance, logger, token):
+def bind(port, instance, token):
     thread = threading.Thread(target=start_server, args=(
-        instance, port, logger, token))
+        instance, port, token))
     thread.daemon = True
     thread.start()
-    logger.info("server", "Listening on 0.0.0.0:" + str(port))
+    instance.logger.info("server", "Listening on 0.0.0.0:" + str(port))

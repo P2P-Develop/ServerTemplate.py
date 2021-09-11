@@ -74,7 +74,7 @@ class Main:
 
         self.log.info("main", "Binding...")
         server.bind(int(config["system"]["bind"]["port"]),
-                    self, self.log, token)
+                    self, token)
         endpoint.loader = endpoint.EPManager()
         self.log.info("main", "Loading endpoints...")
         for route_path in config["system"]["route_paths"]:
