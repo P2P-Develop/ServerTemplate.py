@@ -35,6 +35,11 @@ You need to setup ServerTemplate.py.
 ## Configuration
 
 - `system.bind.port` (REQUIRED) - Server listening port.
+- `system.request.header_readlimit` - Bytes maximum read per line.
+- `system.request.default_protocol` - Default protocol.
+- `system.request.header_limit` - Limit of headers clients can be send.
+- `system.request.default_content_type` - Default type if content type does not match.
+- `system.route_paths` - Endpoint root directory.
 
 
 ## Features
