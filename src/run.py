@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 import shutil
 from os import path
 
@@ -16,11 +17,15 @@ def loadConfig(fileName):
     with open(fileName, "r", encoding="utf-8") as r:
         return yaml.safe_load(r)
 
+
 class Main:
-    def __init__(self):
+    def __init__(self, arg):
         self.log = Logger(name="main", dir="logs")
         self.cmd = CommandExecutor(self)
         self.config = None
+
+        self.no_req_log = arg.no_request_log
+        self.verbose = arg.verbose
 
     def validateConfig(self, config):
         if config["system"]["bind"] is None or "port" not in config["system"]["bind"]:
@@ -91,7 +96,13 @@ class Main:
         main.cmd.register(CommandLoad(self))
 
 
+main = None
+
+
 if __name__ == "__main__":
-    main = Main()
+    parser = ArgumentParser(description="Start server")
+    parser.add_argument("-n", "--no-request-log", action="store_true")
+    parser.add_argument("-v", "--verbose", action="store_true")
+    main = Main(parser.parse_args())
     main.bindCommands()
     main.main()

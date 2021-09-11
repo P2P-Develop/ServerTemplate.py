@@ -10,6 +10,7 @@ from utils.stacktrace import get_stack_trace
 from utils.logging import get_log_name
 from server.handler_base import ServerHandler, HTTPRequest
 from utils.guesser import guess
+from run import main
 
 
 class Handler(ServerHandler):
@@ -146,9 +147,10 @@ class Handler(ServerHandler):
         self.wfile.write(body)
 
     def log_request(self, **kwargs):
-        self.logger.info(get_log_name(), '%s -- %s %s -- "%s %s"' %
-                         (kwargs["client"], kwargs["code"], "" if kwargs["message"] is None else kwargs["message"],
-                          self.request.method, kwargs["path"]))
+        if main.no_req_log:
+            self.logger.info(get_log_name(), '%s -- %s %s -- "%s %s"' %
+                             (kwargs["client"], kwargs["code"], "" if kwargs["message"] is None else kwargs["message"],
+                              self.request.method, kwargs["path"]))
 
     def handle_switch(self):
         try:
