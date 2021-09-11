@@ -9,10 +9,10 @@ def _flatmap(dic):
     return val
 
 
-def _gen_qs(leng, join=", "):
+def _gen_qs(length, join=", "):
     dac = ""
 
-    for ignored in range(0, leng):
+    for ignored in range(0, length):
         if dac != "":
             dac += join
         dac += "?"
@@ -75,19 +75,15 @@ class DataBase:
 
         cu = self.connection.cursor()
         cu.execute(prepare(base, data))
-        # if len(data) is 0:
-        #    cu.execute(base)
-        # else:
-        #    cu.execute(base, data)
         return cu
 
-    def getAll(self, table, data=None):
+    def get_all(self, table, data=None):
         cu = self._get_base("SELECT * FROM " + table, data)
         da = cu.fetchall()
         cu.close()
         return da
 
-    def getOne(self, table, data=None):
+    def get_one(self, table, data=None):
         cu = self._get_base("SELECT * FROM " + table, data)
         da = cu.fetchone()
         cu.close()
@@ -99,13 +95,13 @@ class DataBase:
         cu.close()
         return da
 
-    def countNull(self, table, column):
+    def count_null(self, table, column):
         cu = self._get_base("SELECT count(*) FROM " + table + " WHERE ? IS NULL", [column])
         da = cu.fetchone()[0]
         cu.close()
         return da
 
-    def countNonNull(self, table, column):
+    def count_nonnull(self, table, column):
         cu = self._get_base("SELECT count(*) FROM " + table + " WHERE ? IS NOT NULL", [column])
         da = cu.fetchone()[0]
         cu.close()

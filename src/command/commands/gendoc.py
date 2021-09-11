@@ -8,10 +8,10 @@ from command.command import CommandEntry
 
 
 class CommandDoc(CommandEntry):
-    def getName(self):
+    def get_name(self):
         return "doc"
 
-    def getAliases(self):
+    def get_aliases(self):
         return ["docs", "document"]
 
     def exec(self, args):

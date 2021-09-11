@@ -14,8 +14,8 @@ from server import handler_base
 from server import handler
 
 
-def loadConfig(fileName):
-    with open(fileName, "r", encoding="utf-8") as r:
+def load_config(file_name):
+    with open(file_name, "r", encoding="utf-8") as r:
         return yaml.safe_load(r)
 
 
@@ -28,7 +28,7 @@ class Main:
         self.no_req_log = handler.no_req_log = arg.no_request_log
         self.verbose = arg.verbose
 
-    def validateConfig(self, config):
+    def validate_config(self, config):
         if config["system"]["bind"] is None or "port" not in config["system"]["bind"]:
             self.log.severe("config", "system.bind.port not found.")
             self.log.hint(
@@ -54,9 +54,9 @@ class Main:
             self.log.severe("config", "Please edit config.yml first.")
             self.die(1)
 
-        config = loadConfig("config.yml")
+        config = load_config("config.yml")
         self.config = config
-        if not self.validateConfig(config):
+        if not self.validate_config(config):
             self.die(1)
 
         handler_base.read_limit = config["system"]["request"]["header_readlimit"]
@@ -86,7 +86,7 @@ class Main:
         self.log.commit()
         exit(i)
 
-    def bindCommands(self):
+    def bind_commands(self):
         from command.commands.general import CommandExit
         from command.commands.gendoc import CommandDoc
         from command.commands.reload import CommandReload
@@ -102,5 +102,5 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--no-request-log", action="store_true")
     parser.add_argument("-v", "--verbose", action="store_true")
     main = Main(parser.parse_args())
-    main.bindCommands()
+    main.bind_commands()
     main.main()
