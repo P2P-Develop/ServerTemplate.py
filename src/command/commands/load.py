@@ -5,10 +5,10 @@ from command.command import CommandEntry
 
 
 class CommandLoad(CommandEntry):
-    def getName(self):
+    def get_name(self):
         return "load"
 
-    def getAliases(self):
+    def get_aliases(self):
         return []
 
     def exec(self, args):

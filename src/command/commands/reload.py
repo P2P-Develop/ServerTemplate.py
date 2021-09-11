@@ -3,10 +3,10 @@ from command.command import CommandEntry
 
 
 class CommandReload(CommandEntry):
-    def getName(self):
+    def get_name(self):
         return "reload"
 
-    def getAliases(self):
+    def get_aliases(self):
         return []
 
     def exec(self, args):

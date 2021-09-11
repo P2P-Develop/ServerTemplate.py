@@ -5,8 +5,8 @@ class CommandExecutor:
         self.commands = {}
 
     def register(self, clazz):
-        self.commands[clazz.getName()] = clazz
-        for alias in clazz.getAliases():
+        self.commands[clazz.get_name()] = clazz
+        for alias in clazz.get_aliases():
             self.commands[alias] = clazz
 
     def exec(self, cmd):

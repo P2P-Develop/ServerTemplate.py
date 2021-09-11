@@ -357,6 +357,7 @@ class EPManager:
         self.signals = []
         self.index_tree = {}
         self.known_source = []
+        self.count = 0
         loader = self
 
     def load(self, root):
@@ -432,6 +433,7 @@ class EPManager:
                 raise ValueError("Path argument count mismatch.")
 
             cursor[method] = EndPoint(method, rt, path, function, auth, args, bool(paths), docs)
+            self.count += 1
 
     def get_endpoint(self, method, path, params=None):
 

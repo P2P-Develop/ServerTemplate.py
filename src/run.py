@@ -1,3 +1,4 @@
+import os
 from argparse import ArgumentParser
 import shutil
 from os import path
@@ -14,8 +15,8 @@ from server import handler_base
 from server import handler
 
 
-def loadConfig(fileName):
-    with open(fileName, "r", encoding="utf-8") as r:
+def load_config(file_name):
+    with open(file_name, "r", encoding="utf-8") as r:
         return yaml.safe_load(r)
 
 
@@ -28,7 +29,7 @@ class Main:
         self.no_req_log = handler.no_req_log = arg.no_request_log
         self.verbose = arg.verbose
 
-    def validateConfig(self, config):
+    def validate_config(self, config):
         if config["system"]["bind"] is None or "port" not in config["system"]["bind"]:
             self.log.severe("config", "system.bind.port not found.")
             self.log.hint(
@@ -48,15 +49,15 @@ class Main:
     def main(self):
         self.log.info("main", "Starting...")
         if not path.exists("config.yml"):
-            shutil.copy("resources/config.yml", "config.yml")
+            shutil.copy("resources/config.template.yml", "config.yml")
             self.log.info(
-                "config", "Copied resources/config.yml to ./config.yml .")
+                "config", "Copied resources/config.template.yml to ./config.yml .")
             self.log.severe("config", "Please edit config.yml first.")
             self.die(1)
 
-        config = loadConfig("config.yml")
+        config = load_config("config.yml")
         self.config = config
-        if not self.validateConfig(config):
+        if not self.validate_config(config):
             self.die(1)
 
         handler_base.read_limit = config["system"]["request"]["header_readlimit"]
@@ -76,7 +77,11 @@ class Main:
                     self, self.log, token)
         endpoint.loader = endpoint.EPManager()
         self.log.info("main", "Loading endpoints...")
-        endpoint.loader.load("src/server/handler_root/")
+        for route_path in config["system"]["route_paths"]:
+            if not os.path.exists(route_path):
+                raise FileNotFoundError(route_path + " not found.")
+            endpoint.loader.load(route_path)
+        self.log.info("main", "%s endpoints loaded." % endpoint.loader.count)
         self.log.info("main", "Ready")
         while True:
             self.console()
@@ -86,7 +91,7 @@ class Main:
         self.log.commit()
         exit(i)
 
-    def bindCommands(self):
+    def bind_commands(self):
         from command.commands.general import CommandExit
         from command.commands.gendoc import CommandDoc
         from command.commands.reload import CommandReload
@@ -102,5 +107,5 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--no-request-log", action="store_true")
     parser.add_argument("-v", "--verbose", action="store_true")
     main = Main(parser.parse_args())
-    main.bindCommands()
+    main.bind_commands()
     main.main()

@@ -2,11 +2,6 @@ from utils.header_parse import DecoratedHeader, MultiValueHeader, Header
 
 
 def guess(acceptable, provided, default):
-    #if len(provided) == 0:
-    #    if type(body) == bytes:
-    #        write_type(body, "application/octet-stream")
-    #        return
-
     if not isinstance(acceptable, Header) and len(acceptable) == len(provided) == 0:
         return default
 

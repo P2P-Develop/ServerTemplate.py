@@ -7,11 +7,11 @@ class CommandEntry(metaclass=ABCMeta):
         self.logger = instance.log
 
     @abstractmethod
-    def getName(self):
+    def get_name(self):
         pass
 
     @abstractmethod
-    def getAliases(self):
+    def get_aliases(self):
         pass
 
     @abstractmethod
