@@ -1,3 +1,4 @@
+import os
 from argparse import ArgumentParser
 import shutil
 from os import path
@@ -76,7 +77,11 @@ class Main:
                     self, self.log, token)
         endpoint.loader = endpoint.EPManager()
         self.log.info("main", "Loading endpoints...")
-        endpoint.loader.load("src/server/handler_root/")
+        for route_path in config["system"]["route_paths"]:
+            if not os.path.exists(route_path):
+                raise FileNotFoundError(route_path + " not found.")
+            endpoint.loader.load(route_path)
+        self.log.info("main", "%s endpoints loaded." % endpoint.loader.count)
         self.log.info("main", "Ready")
         while True:
             self.console()
