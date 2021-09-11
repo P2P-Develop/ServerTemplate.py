@@ -26,6 +26,7 @@ class Cause(enum.Enum):
     RESOURCE_NOTFOUND = [404, "RESOURCE_NOTFOUND", "Resource not found."]
     GONE = [410, "GONE", "Resource has already gone."]
     MISSING_FIELD = [400, "MISSING_FIELD", "Missing %0 field(s): [%1]"]
+    PAYLOAD_EMPTY = [400, "PAYLOAD_EMPTY", "Payload empty."]
     INVALID_FIELD = [400, "INVALID_FIELD",
                      "Invalid field: Field %0 is must be %1."]
     INVALID_FIELD_UNK = [400, "INVALID_FIELD", "Invalid field has found."]
