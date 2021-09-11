@@ -49,9 +49,9 @@ class Main:
     def main(self):
         self.log.info("main", "Starting...")
         if not path.exists("config.yml"):
-            shutil.copy("resources/config.yml", "config.yml")
+            shutil.copy("resources/config.template.yml", "config.yml")
             self.log.info(
-                "config", "Copied resources/config.yml to ./config.yml .")
+                "config", "Copied resources/config.template.yml to ./config.yml .")
             self.log.severe("config", "Please edit config.yml first.")
             self.die(1)
 
