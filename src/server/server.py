@@ -52,4 +52,4 @@ def bind(port, instance, token):
         instance, port, token))
     thread.daemon = True
     thread.start()
-    instance.logger.info("server", "Listening on 0.0.0.0:" + str(port))
+    instance.log.info("server", "Listening on 0.0.0.0:" + str(port))
