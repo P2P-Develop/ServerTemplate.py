@@ -7,8 +7,12 @@ import urllib.parse as parse
 import endpoint
 import route
 from utils.stacktrace import get_stack_trace
+from utils.logging import get_log_name
 from server.handler_base import ServerHandler, HTTPRequest
 from utils.guesser import guess
+
+
+no_req_log = False
 
 
 class Handler(ServerHandler):
@@ -144,6 +148,12 @@ class Handler(ServerHandler):
         self.end_header()
         self.wfile.write(body)
 
+    def log_request(self, **kwargs):
+        if not no_req_log:
+            self.logger.info(get_log_name(), '%s -- %s %s -- "%s %s"' %
+                             (kwargs["client"], kwargs["code"], "" if kwargs["message"] is None else kwargs["message"],
+                              self.request.method, kwargs["path"]))
+
     def handle_switch(self):
         try:
             path = parse.urlparse(self.request.path)
@@ -217,4 +227,8 @@ class Handler(ServerHandler):
         return False
 
     def handle_parse_error(self, cause):
-        pass
+        self.send_response(400)
+        self.send_header("Connection", "close")
+        self.end_header()
+        self.send_body("text/plain", "Request malformed: " + cause)
+

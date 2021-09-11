@@ -100,6 +100,9 @@ class AbstractHandlerBase:
     def send_response(self, code: int, message: str, server_version: str) -> None:
         pass
 
+    def log_request(self, **kwargs):
+        pass
+
 
 class CachedHeader(AbstractHandlerBase):
     def __init__(self):
@@ -137,6 +140,8 @@ class ServerHandler(StreamRequestHandler, CachedHeader, AbstractHandlerBase):
         self.response_cache = []
         self.multiple = False
         self.request = None
+        self._code = 0
+        self._message = None
         StreamRequestHandler.__init__(self, request, client_address, server)
 
     def handle(self):
@@ -162,6 +167,15 @@ class ServerHandler(StreamRequestHandler, CachedHeader, AbstractHandlerBase):
             self.request = req
 
             self.handle_request()
+
+            if self._message is None and self._code in responses:
+                self._message = responses[self._code]
+
+            self.log_request(code=self._code,
+                             client="%s:%s" % self.client_address,
+                             message=self._message,
+                             path=req.path)
+
         except ParseException as e:
             self.handle_parse_error(e.cause)
 
@@ -173,6 +187,11 @@ class ServerHandler(StreamRequestHandler, CachedHeader, AbstractHandlerBase):
                 self.multiple = False
 
         super().send_header(name, value, server_version)
+
+    def send_response(self, code, message=None, server_version="HTTP/1.1"):
+        self._code = code
+        self._message = message
+        super().send_response(code, message, server_version)
 
 
 def decode(line):
