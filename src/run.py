@@ -11,6 +11,7 @@ from utils.logging import Logger
 from utils.token import Token
 
 from server import handler_base
+from server import handler
 
 
 def loadConfig(fileName):
@@ -24,7 +25,7 @@ class Main:
         self.cmd = CommandExecutor(self)
         self.config = None
 
-        self.no_req_log = arg.no_request_log
+        self.no_req_log = handler.no_req_log = arg.no_request_log
         self.verbose = arg.verbose
 
     def validateConfig(self, config):
@@ -94,9 +95,6 @@ class Main:
         main.cmd.register(CommandDoc(self))
         main.cmd.register(CommandReload(self))
         main.cmd.register(CommandLoad(self))
-
-
-main = None
 
 
 if __name__ == "__main__":
