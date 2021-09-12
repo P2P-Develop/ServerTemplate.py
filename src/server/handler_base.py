@@ -100,6 +100,9 @@ class AbstractHandlerBase:
     def send_response(self, code: int, message: str, server_version: str) -> None:
         pass
 
+    def send_body(self, content_type: str, raw_body: bytes) -> None:
+        pass
+
     def log_request(self, **kwargs):
         pass
 
@@ -192,6 +195,12 @@ class ServerHandler(StreamRequestHandler, CachedHeader, AbstractHandlerBase):
         self._code = code
         self._message = message
         super().send_response(code, message, server_version)
+
+    def send_body(self, content_type: str, raw_body: bytes) -> None:
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", len(raw_body))
+        self.end_header()
+        self.wfile.write(raw_body)
 
 
 def decode(line):
