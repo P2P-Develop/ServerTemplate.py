@@ -88,7 +88,7 @@ class Handler(ServerHandler):
             handled = ep.handle(self, params, queries, path_param)
         except Exception:
             get_stack_trace("handler_root", *sys.exc_info())
-            return
+            return False
 
         if handled is None:
             return True
