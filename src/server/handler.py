@@ -41,40 +41,37 @@ class Handler(ServerHandler):
         if self.dynamic_handle(path, params, queries):
             return
 
-        try:
-            if os.path.exists("resources/handle" + path + ".txt"):
-                with open("resources/handle" + path + ".txt", encoding="utf-8", mode="r") as r:
-                    content = r.read().split("\n")
-                    route.success(self, int(content[0]), content[1:])
-                    return
+        if os.path.exists("resources/handle" + path + ".txt"):
+            with open("resources/handle" + path + ".txt", encoding="utf-8", mode="r") as r:
+                content = r.read().split("\n")
+                route.success(self, int(content[0]), content[1:])
+                return
 
-            if os.path.exists("resources/handle" + path + ".json"):
-                with open("resources/handle" + path + ".json", encoding="utf-8", mode="r") as r:
-                    content = json.JSONDecoder().decode(r.read())
-                    if content["auth"]:
-                        if self.do_auth():
-                            return
+        if os.path.exists("resources/handle" + path + ".json"):
+            with open("resources/handle" + path + ".json", encoding="utf-8", mode="r") as r:
+                content = json.JSONDecoder().decode(r.read())
+                if content["auth"]:
+                    if self.do_auth():
+                        return
 
-                    self.send_response(content["code"])
-                    self.send_header("Content-Type", "application/json")
-                    self.end_header()
-                    self.wfile.write(json.JSONEncoder().encode(content["obj"]).encode("utf-8"))
-                    return
+                self.send_response(content["code"])
+                self.send_header("Content-Type", "application/json")
+                self.end_header()
+                self.wfile.write(json.JSONEncoder().encode(content["obj"]).encode("utf-8"))
+                return
 
-            if os.path.exists("resources/resource" + path):
-                if self.do_auth():
-                    return
+        if os.path.exists("resources/resource" + path):
+            if self.do_auth():
+                return
 
-                with open("resources/resource" + path, mode="rb") as r:
-                    self.send_response(200)
-                    self.send_header("Content-Type", mimetypes.guess_type("resources/resource" + path)[0])
-                    self.end_header()
-                    self.wfile.write(r.read())
-                    return
+            with open("resources/resource" + path, mode="rb") as r:
+                self.send_response(200)
+                self.send_header("Content-Type", mimetypes.guess_type("resources/resource" + path)[0])
+                self.end_header()
+                self.wfile.write(r.read())
+                return
 
-            route.post_error(self, route.Cause.EP_NOTFOUND)
-        except Exception:
-            get_stack_trace("server", *sys.exc_info())
+        route.post_error(self, route.Cause.EP_NOTFOUND)
 
     def dynamic_handle(self, path, params, queries):
         path_param = {}
