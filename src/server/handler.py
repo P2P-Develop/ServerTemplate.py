@@ -32,13 +32,12 @@ class Handler(ServerHandler):
             self.wfile.close()
 
     def call_handler(self, path: str, params, queries):
+        if self.dynamic_handle(path, params, queries):
+            return
 
         if ".." in path:
             route.post_error(self, route.Cause.EP_NOTFOUND)
 
-            return
-
-        if self.dynamic_handle(path, params, queries):
             return
 
         if os.path.exists("resources/handle" + path + ".txt"):
