@@ -154,6 +154,9 @@ class ServerHandler(StreamRequestHandler, CachedHeader, AbstractHandlerBase):
         try:
             req = HTTPParser(self, self.rfile).parse()
 
+            if not req:
+                return
+
             if req.protocol >= "HTTP/1.1":
                 self.multiple = True
 
@@ -216,6 +219,9 @@ class HTTPParser:
         try:
             read = self.rfile.readline(read_limit + 1)
 
+            if not read:
+                return
+
             if len(read) > read_limit:
                 raise ParseException("URI_TOO_LONG")
             return read
@@ -226,11 +232,17 @@ class HTTPParser:
             return None
 
     def parse(self):
-        self._first_line(self._read_line())
+        b = self._read_line()
+        if not b:
+            return
+        self._first_line(b)
         self._response.headers = HeaderSet()
         count = 0
         while count < header_limit:
-            d = decode(self._read_line())
+            b = self._read_line()
+            if not b:
+                return
+            d = decode(b)
 
             if d == "\r\n":
                 break
