@@ -25,12 +25,18 @@ classfiers = [
 
 [tool.poetry]
 name = "ServerTemplate.py"
+version = "1.0.0"
+description = "Simple API server template and utilities for Python."
 
+authors = [
+    "peyang-Celeron <kk@fuwa.li>",
+    "Potato1682 <contact@potato1682.ml>"
+]
 
 [tool.poetry.dependencies]
 pyyaml = "*"
 prompt-toolkit = "*"
-typing-extentions = "*"
+typing-extensions = "*"
 
 [tool.poetry.dev-dependencies]
 pylint = "*"
