@@ -1,0 +1,116 @@
+[MASTER]
+
+# Files or directories to be skipped. They should be base names, not paths.
+ignore=.git,.idea,bin,docs,logs
+
+
+[MESSAGES CONTROL]
+# Disable the message, report, category or checker with the given id(s). You
+# can either give multiple identifiers separated by comma (,) or put this
+# option multiple times (only on the command line, not in the configuration
+# file where it should appear only once).You can also use "--disable=all" to
+# disable everything first and then reenable specific checks. For example, if
+# you want to run only the similarities checker, you can use "--disable=all
+# --enable=similarities". If you want to run only the classes checker, but have
+# no Warning level messages displayed, use"--disable=all --enable=classes
+# --disable=W"
+#
+# Kubeflow disables string-interpolation because we are starting to use f
+# style strings
+disable=too-many-locals,
+        no-name-in-module,
+        too-many-instance-attributes,
+        no-self-use,
+        too-many-arguments
+
+
+[REFACTORING]
+
+# Maximum number of nested blocks for function / method body
+max-nested-blocks=6
+
+
+[BASIC]
+
+# Bad variable names which should always be refused, separated by a comma.
+bad-names=tmp,hoge,fuga,piyo,foo,bar,awr
+
+# Naming style matching correct class names.
+class-naming-style=PascalCase
+
+# Include a hint for the correct naming format with invalid-name.
+include-naming-hint=yes
+
+
+[FORMAT]
+
+# Expected format of line ending, e.g. empty (any line ending), LF or CRLF.
+expected-line-ending-format=LF
+
+# Maximum number of characters on a single line.
+max-line-length=120
+
+# Maximum number of lines in a module.
+max-module-lines=1000
+
+# Allow the body of a class to be on the same line as the declaration if body
+# contains single statement.
+single-line-class-stmt=yes
+
+# Allow the body of an if to be on the same line as the test if there is no
+# else.
+single-line-if-stmt=yes
+
+
+[SIMILARITIES]
+
+# Imports are removed from the similarity computation
+ignore-imports=yes
+
+
+[VARIABLES]
+
+# List of additional names supposed to be defined in builtins. Remember that
+# you should avoid defining new builtins when possible.
+additional-builtins=config
+
+# Tells whether unused global variables should be treated as a violation.
+allow-global-unused-variables=yes
+
+# Tells whether we should check for unused import in __init__ files.
+init-import=yes
+
+
+[DESIGN]
+
+# Maximum number of arguments for function / method.
+max-args=-1
+
+# Maximum number of branch for function / method body.
+max-branches=14
+
+# Maximum number of public methods for a class (see R0904).
+max-public-methods=-1
+
+# Maximum number of return / yield for function / method body.
+max-returns=14
+
+# Maximum number of statements in function / method body.
+max-statements=60
+
+# Minimum number of public methods for a class (see R0903).
+min-public-methods=0
+
+
+[IMPORTS]
+
+# Allow wildcard imports from modules that define __all__.
+allow-wildcard-with-all=yes
+
+
+[EXCEPTIONS]
+
+# Exceptions that will emit a warning when being caught. Defaults to
+# "BaseException, Exception".
+overgeneral-exceptions=BaseException,
+                       Exception
