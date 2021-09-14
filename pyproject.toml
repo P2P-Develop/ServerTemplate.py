@@ -1,0 +1,36 @@
+[project]
+name = "ServerTemplate.py"
+version = "1.0.0"
+description = "Simple API server template and utilities for Python."
+
+authors = [
+    "peyang-Celeron <kk@fuwa.li>",
+    "Potato1682 <contact@potato1682.ml>"
+]
+
+license = "MIT"
+readme = "README.md"
+python = "^3.7"
+homepage = "https://github.com/P2P-Develop/ServerTemplate.py"
+repository = "https://github.com/P2P-Develop/ServerTemplate.py.git"
+documantation = "https://github.com/P2P-Develop/ServerTemplate.py"
+
+keywords = ["python", "server", "api", "template", "ServerTemplate.py"]
+
+classfiers = [
+    "Topic :: Software Development",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Utilities"
+]
+
+[tool.poetry]
+name = "ServerTemplate.py"
+
+
+[tool.poetry.dependencies]
+pyyaml = "*"
+prompt-toolkit = "*"
+typing-extentions = "*"
+
+[tool.poetry.dev-dependencies]
+pylint = "*"
