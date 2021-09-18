@@ -80,7 +80,10 @@ read_limit = 65536
 header_limit = 100
 
 
-class AbstractHandlerBase:
+class AbstractHandlerBase(StreamRequestHandler):
+    def __init__(self, request, client_address, server):
+        super().__init__(request, client_address, server)
+
     def handle(self) -> None:
         pass
 
@@ -111,7 +114,6 @@ class AbstractHandlerBase:
 
 class CachedHeader(AbstractHandlerBase):
     def __init__(self):
-        self.wfile = None
         self._response_cache = []
 
     def send_header(self, name: str, value: str, server_version: str = "HTTP/1.1") -> None:
@@ -139,7 +141,7 @@ class CachedHeader(AbstractHandlerBase):
             self._response_cache.append(f"{server_version} {code} {message}\r\n".encode("iso-8859-1"))
 
 
-class ServerHandler(StreamRequestHandler, CachedHeader, AbstractHandlerBase):
+class ServerHandler(CachedHeader, AbstractHandlerBase):
     def __init__(self, request: socket, client_address: tuple, server):
         CachedHeader.__init__(self)
         self.response_cache = []
@@ -147,7 +149,8 @@ class ServerHandler(StreamRequestHandler, CachedHeader, AbstractHandlerBase):
         self.request = None
         self._code = 0
         self._message = None
-        StreamRequestHandler.__init__(self, request, client_address, server)
+
+        AbstractHandlerBase.__init__(self, request, client_address, server)
 
     def handle(self) -> None:
         self._handle()
