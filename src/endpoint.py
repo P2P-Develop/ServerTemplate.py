@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Union, Optional
 import importlib
 import os
 import pathlib
@@ -20,7 +22,7 @@ class Method(Enum):
     PATCH = "PATCH"
 
     @staticmethod
-    def values():
+    def values() -> list:
         return [ev.value for ev in Method]
 
 
@@ -134,7 +136,7 @@ class Argument(Documented):
         self.format = format_type
         self.ignore_check_expect100 = ignore_check_expect100
 
-    def norm_type(self, val=None):
+    def norm_type(self, val: Optional[any] = None) -> Optional[any]:
         if "str" in self.type:
             return "string" if val is None else str(val)
         elif "bool" in self.type:
@@ -146,7 +148,7 @@ class Argument(Documented):
         else:
             return "number" if val is None else float(val)
 
-    def validate(self, param_dict):
+    def validate(self, param_dict: dict) -> int:
         # NOT_FOUND = -1, OK = 0, NOT_MATCH = 1, TYPE_ERR = 2, MINIMUM_ERR = 3, MAXIMUM_ERR = 4
         name = self.name
         typ = self.type
@@ -219,7 +221,7 @@ class EndPoint(Documented):
         self.args = () if args is None else args
         self.path_arg = path_arg
 
-    def handle(self, handler, params, queries, path_param):
+    def handle(self, handler, params: dict, queries: dict, path_param: list) -> any:
         if self.auth_required and handler.do_auth():
             return
 
@@ -228,7 +230,7 @@ class EndPoint(Documented):
 
         return self.handler(handler, params)
 
-    def validate_arg(self, handler, params, queries, path_param):
+    def validate_arg(self, handler, params: dict, queries: dict, path_param: list) -> bool:
 
         missing = []
 
@@ -300,21 +302,21 @@ class Response(Documented):
         self.raw = raw_body
         self.cont_type = content_type
 
-    def header(self, name, value):
+    def header(self, name: str, value: str) -> Response:
         self.headers[name] = value
         return self
 
-    def body(self, value, raw=False):
+    def body(self, value: any, raw: bool = False) -> Response:
         self.body_data = value
         self.raw = raw
         return self
 
-    def content_type(self, value):
+    def content_type(self, value: str) -> Response:
         self.cont_type = value
         self.header("Content-Type", value)
         return self
 
-    def get_code(self):
+    def get_code(self) -> int:
         return self.code
 
 
@@ -327,8 +329,8 @@ class ErrorResponse(Response):
                  cause: Cause = None,
                  code: int = 0,
                  headers: dict = None,
-                 body=None,
-                 content_type=None,
+                 body: any = None,
+                 content_type: Union[str, list] = None,
                  doc: Document = None):
         if cause is not None:
             super().__init__(cause[0], headers, cause[2], content_type, doc)
@@ -338,11 +340,11 @@ class ErrorResponse(Response):
         self.cause = cause
 
 
-def success(code):
+def success(code) -> SuccessResponse:
     return SuccessResponse(code)
 
 
-def error(cause: Cause = None, code: int = 0, message: str = None):
+def error(cause: Cause = None, code: int = 0, message: str = None) -> ErrorResponse:
     if cause is not None:
         return ErrorResponse(cause)
     return ErrorResponse(code=code, body=message)
@@ -360,14 +362,14 @@ class EPManager:
         self.count = 0
         loader = self
 
-    def load(self, root):
+    def load(self, root) -> None:
         for file in pathlib.Path(root).glob("**/*.py"):
-            self.load_single(file, False)
+            self.load_single(str(file), False)
         if root not in self.known_source:
             self.known_source.append(root)
         self.make_cache()
 
-    def load_single(self, path, build_cache=True):
+    def load_single(self, path: str, build_cache: bool = True) -> bool:
         try:
             m = ".".join(pathlib.Path(path).parts)[4:-3]
             importlib.import_module(m)
@@ -380,7 +382,7 @@ class EPManager:
             self.make_cache()
         return True
 
-    def enumerate(self, dic=None):
+    def enumerate(self, dic: dict = None) -> list:
         result = []
         if dic is None:
             dic = self.index_tree
@@ -392,7 +394,7 @@ class EPManager:
                 result.append(i)
         return result
 
-    def make_cache(self):
+    def make_cache(self) -> None:
         for s in self.signals:
             method = s["method"]
             function = s["func"]
@@ -435,7 +437,7 @@ class EPManager:
             cursor[method] = EndPoint(method, rt, path, function, auth, args, bool(paths), docs)
             self.count += 1
 
-    def get_endpoint(self, method, path, params=None):
+    def get_endpoint(self, method: str, path: str, params: dict = None) -> EndPoint:
 
         cursor = self.index_tree
 
