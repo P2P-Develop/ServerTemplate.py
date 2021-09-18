@@ -115,7 +115,7 @@ class Documented:
 class Argument(Documented):
     def __init__(self, name: str, arg_type: str, arg_in: str, required: bool = True, auto_cast: bool = True,
                  minimum: int = -1, maximum: int = -1, must_be: (tuple, list) = (), doc: Document = None,
-                 format_type: str = None, ignore_check_expect100=False):
+                 format_type: str = None, ignore_check_expect100=False, enum=(tuple, list)):
         super().__init__(doc)
         if arg_type not in ["str", "string", "bool", "boolean", "number", "int", "long",
                             "double", "decimal", "float", "other"]:
@@ -129,7 +129,7 @@ class Argument(Documented):
         self.auto_cast = auto_cast
         self.min = minimum
         self.max = maximum
-        self.must_be = must_be
+        self.must_be = must_be if enum is None else enum
         self.document = doc
         self.format = format_type
         self.ignore_check_expect100 = ignore_check_expect100

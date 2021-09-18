@@ -276,6 +276,10 @@ def convert_annotation(obj):
                 "required": arg.required,
                 "type": norm_type
             }
+
+            if arg.must_be is not None:
+                st["enum"] = arg.must_be
+
             arg_doc = arg.document
             if arg_doc is None:
                 continue
