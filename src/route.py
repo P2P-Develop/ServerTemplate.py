@@ -1,12 +1,13 @@
 import enum
 import json
+from server.handler_base import AbstractHandlerBase
 
 
-def encode(amfs):
+def encode(amfs: any) -> str:
     return json.JSONEncoder().encode(amfs)
 
 
-def write(handler, code, txt, content_type="application/json"):
+def write(handler, code: int, txt: str, content_type: str = "application/json") -> None:
     handler.send_response(code)
     handler.send_header("Content-Type", content_type)
     ln = txt.encode("utf-8")
@@ -32,11 +33,11 @@ class Cause(enum.Enum):
     INVALID_FIELD_UNK = [400, "INVALID_FIELD", "Invalid field has found."]
     ERROR_OCCURRED = [500, "ERROR_OCCURRED", "An error has occurred."]
 
-    def __getitem__(self, index):
+    def __getitem__(self, index) -> list:
         return self.value[index]
 
 
-def validate(handler, fname, value, must):
+def validate(handler, fname: str, value: any, must: str) -> bool:
     if str(value) in must:
         return False
 
@@ -46,7 +47,7 @@ def validate(handler, fname, value, must):
     return True
 
 
-def missing(handler, fields, require):
+def missing(handler, fields: dict, require: list) -> bool:
     diff = search_missing(fields, require)
     if len(diff) is 0:
         return False
@@ -56,25 +57,25 @@ def missing(handler, fields, require):
     return True
 
 
-def success(handler, code, obj):
+def success(handler, code: int, obj: any):
     write(handler, code, encode({
         "success": True,
         "result": obj
     }))
 
 
-def post_error(handler, cause, message=None):
+def post_error(handler, cause: Cause, message: str = None) -> None:
     write(handler, cause[0], error(cause, message))
 
 
-def search_missing(fields, require):
+def search_missing(fields: dict, require: list) -> list:
     for key in fields.keys():
         if key in require:
             require.remove(key)
     return require
 
 
-def error(cause, message=None):
+def error(cause: Cause, message: str = None) -> str:
     if message is None:
         return encode({
             "success": False,
@@ -89,7 +90,7 @@ def error(cause, message=None):
         })
 
 
-def cerror(cause, message):
+def cerror(cause, message) -> str:
     return encode({
         "success": False,
         "cause": cause,
@@ -97,18 +98,18 @@ def cerror(cause, message):
     })
 
 
-def wssuccess():
+def wssuccess() -> str:
     return encode({
         "success": True
     })
 
 
-def finish(handler):
+def finish(handler: AbstractHandlerBase):
     handler.finish()
     handler.connection.close()
 
 
-def quick_invalid(handler, name, message):
+def quick_invalid(handler: AbstractHandlerBase, name: str, message: str):
     write(handler, 400, error(Cause.INVALID_FIELD, Cause.INVALID_FIELD[2]
                               .replace("%0", name)
                               .replace("%1", message)))
