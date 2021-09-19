@@ -116,7 +116,7 @@ class CachedHeader(AbstractHandlerBase):
     def __init__(self):
         self._response_cache = []
 
-    def send_header(self, name: str, value: str, server_version: str = "HTTP/1.1") -> None:
+    def send_header(self, name: str, value: any, server_version: str = "HTTP/1.1") -> None:
         if server_version != "HTTP/0.9":
             self._response_cache.append(f"{name}: {str(value)}\r\n".encode("iso-8859-1"))
 
