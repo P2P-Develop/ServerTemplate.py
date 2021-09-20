@@ -32,13 +32,13 @@ class Document:
                  summary: str = None,
                  # description: str = "Description",
                  # desc: str = "Description",
-                 types: (list, str) = "application/octet-stream",
-                 example: (dict, str, int, float, bool, any) = None,
-                 security: dict = None,
-                 more: dict = None,
-                 responses: list = None,
-                 tags: list = None,
-                 format_type: str = None):
+                 types: Union[list, str] = "application/octet-stream",
+                 example: Union[dict, str, int, float, bool, any] = None,
+                 security: Optional[dict] = None,
+                 responses: Optional[list] = None,
+                 tags: Optional[list] = None,
+                 format_type: Optional[str] = None,
+                 **more_args):
         if title is None and summary is None:
             raise ValueError("Title or Summary must not be None.")
         self.title = summary if title is None else title
@@ -46,13 +46,13 @@ class Document:
         self.types = [types] if isinstance(types, str) else types
         self.example = example
         self.security = security
-        self.more = {} if more is None else more
+        self.more = more_args
         self.responses = [] if responses is None else responses
         self.tags = [] if tags is None else tags
         self.format = format_type
 
 
-def http(method, require_auth: bool = True, args: tuple = (), docs: Document = None):
+def http(method: str, require_auth: bool = True, args: tuple = (), docs: Optional[Document] = None):
     def _context(handler):
         path = os.path.relpath(handler.__globals__["__file__"], "src/server/handler_root")
         path = path.replace(os.sep, "/")
@@ -110,14 +110,24 @@ def http(method, require_auth: bool = True, args: tuple = (), docs: Document = N
 
 
 class Documented:
-    def __init__(self, document: Document = None):
+    def __init__(self, document: Optional[Document] = None):
         self.docs = document
 
 
 class Argument(Documented):
-    def __init__(self, name: str, arg_type: str, arg_in: str, required: bool = True, auto_cast: bool = True,
-                 minimum: int = -1, maximum: int = -1, must_be: (tuple, list) = (), doc: Document = None,
-                 format_type: str = None, ignore_check_expect100=False, enum=(tuple, list)):
+    def __init__(self,
+                 name: str,
+                 arg_type: str,
+                 arg_in: str,
+                 required: bool = True,
+                 auto_cast: bool = True,
+                 minimum: int = -1,
+                 maximum: int = -1,
+                 must_be: Union[tuple, list] = (),
+                 doc: Optional[Document] = None,
+                 format_type: Optional[str] = None,
+                 ignore_check_expect100: bool = False,
+                 enum: Union[tuple, list] = ()):
         super().__init__(doc)
         if arg_type not in ["str", "string", "bool", "boolean", "number", "int", "long",
                             "double", "decimal", "float", "other"]:
@@ -210,8 +220,15 @@ class Argument(Documented):
 
 
 class EndPoint(Documented):
-    def __init__(self, method: str, route_path: str, rel_path: str, handler, auth_required: bool = True,
-                 args: list = None, path_arg: bool = False, doc: Document = None):
+    def __init__(self,
+                 method: str,
+                 route_path: str,
+                 rel_path: str,
+                 handler,
+                 auth_required: bool = True,
+                 args: Optional[list] = None,
+                 path_arg: bool = False,
+                 doc: Optional[Document] = None):
         super().__init__(doc)
         self.method = method
         self.route_path = route_path
@@ -221,7 +238,7 @@ class EndPoint(Documented):
         self.args = () if args is None else args
         self.path_arg = path_arg
 
-    def handle(self, handler, params: dict, queries: dict, path_param: list) -> any:
+    def handle(self, handler, params: dict, queries: dict, path_param: dict) -> Union[Response, any]:
         if self.auth_required and handler.do_auth():
             return
 
@@ -230,7 +247,7 @@ class EndPoint(Documented):
 
         return self.handler(handler, params)
 
-    def validate_arg(self, handler, params: dict, queries: dict, path_param: list) -> bool:
+    def validate_arg(self, handler, params: dict, queries: dict, path_param: dict) -> bool:
 
         missing = []
 
@@ -252,7 +269,7 @@ class EndPoint(Documented):
                     quick_invalid(handler, arg.name, "[" + ", ".join(("true", "false") + arg.must_be) + "]")
                     return False
                 else:
-                    quick_invalid(handler, arg.name, "[" + ", " + arg.must_be + "]")
+                    quick_invalid(handler, arg.name, "[" + ", ".join(arg.must_be) + "]")
                     return False
             elif code == 2:
                 quick_invalid(handler, arg.name, arg.norm_type())
@@ -288,12 +305,13 @@ class EndPoint(Documented):
 
 
 class Response(Documented):
-    def __init__(self, code: int = 0,
-                 body=None,
-                 raw_body=False,
-                 content_type=None,
-                 headers: dict = None,
-                 doc: Document = None):
+    def __init__(self,
+                 code: int = 0,
+                 body: Optional[any] = None,
+                 raw_body: bool = False,
+                 content_type: Union[str, list] = None,
+                 headers: Optional[dict] = None,
+                 doc: Optional[Document] = None):
         super().__init__(doc)
         self.code = code
         self.docs = doc
@@ -326,12 +344,12 @@ class SuccessResponse(Response):
 
 class ErrorResponse(Response):
     def __init__(self,
-                 cause: Cause = None,
+                 cause: Optional[Cause] = None,
                  code: int = 0,
-                 headers: dict = None,
-                 body: any = None,
-                 content_type: Union[str, list] = None,
-                 doc: Document = None):
+                 headers: Optional[dict] = None,
+                 body: Optional[any] = None,
+                 content_type: Optional[Union[str, list]] = None,
+                 doc: Optional[Document] = None):
         if cause is not None:
             super().__init__(cause[0], headers, cause[2], content_type, doc)
         else:
@@ -344,7 +362,7 @@ def success(code) -> SuccessResponse:
     return SuccessResponse(code)
 
 
-def error(cause: Cause = None, code: int = 0, message: str = None) -> ErrorResponse:
+def error(cause: Optional[Cause] = None, code: int = 0, message: Optional[str] = None) -> ErrorResponse:
     if cause is not None:
         return ErrorResponse(cause)
     return ErrorResponse(code=code, body=message)
@@ -362,7 +380,7 @@ class EPManager:
         self.count = 0
         loader = self
 
-    def load(self, root) -> None:
+    def load(self, root: str) -> None:
         for file in pathlib.Path(root).glob("**/*.py"):
             self.load_single(str(file), False)
         if root not in self.known_source:
@@ -382,7 +400,7 @@ class EPManager:
             self.make_cache()
         return True
 
-    def enumerate(self, dic: dict = None) -> list:
+    def enumerate(self, dic: Optional[dict] = None) -> list:
         result = []
         if dic is None:
             dic = self.index_tree
@@ -437,7 +455,7 @@ class EPManager:
             cursor[method] = EndPoint(method, rt, path, function, auth, args, bool(paths), docs)
             self.count += 1
 
-    def get_endpoint(self, method: str, path: str, params: dict = None) -> EndPoint:
+    def get_endpoint(self, method: str, path: str, params: Optional[dict] = None) -> Optional[EndPoint]:
 
         cursor = self.index_tree
 
