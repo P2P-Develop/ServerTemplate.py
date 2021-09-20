@@ -3,7 +3,7 @@ from endpoint import *
 
 # In this example, the string specified by the text parameter will be repeated the specified number of times.
 
-@http("GET|POST", args=(
+@http(Method.GET & Method.POST, args=(
     Argument("text", "str", "query", maximum=32,
              doc=Document(summary="Input text.")),
     Argument("count", "int", "query", minimum=1, maximum=100,
