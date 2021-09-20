@@ -325,6 +325,7 @@ def convert_annotation(obj):
 
         if file.path_arg:
             for path_arg in path_args:
+                path = path.replace("___", "{" + path_arg + "}", 1)
                 path = path.replace("__", "{" + path_arg + "}", 1)
 
         if path == "_":

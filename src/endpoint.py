@@ -71,9 +71,17 @@ def http(method: str,
     def _context(handler):
         path = None
         file = handler.__globals__["__file__"]
+        if "___" in os.path.normpath(file).split(os.path.sep):
+            raise IsADirectoryError("Path-argument like directory found.")
+        ep_dir = os.path.dirname(file)
+        if file.endswith("___.py") and\
+                len([name for name in os.listdir(ep_dir) if os.path.isfile(ep_dir + "/" + name)]) >= 2:
+            raise FileExistsError("Endpoint conflict")
+
         for base in loader.known_source:
             if os.path.abspath(file).startswith(os.path.abspath(base)):
                 path = os.path.relpath(file, os.path.relpath(base))
+
         if path is None:
             raise FileNotFoundError("Base path not found.")
         path = path.replace(os.sep, "/")
@@ -85,8 +93,10 @@ def http(method: str,
             arg3 = args
 
         for arg in arg3:
-            if arg.arg_in == "path" and "__" not in path:
-                raise ValueError("Can't routing to this endpoint.")
+            if arg.arg_in == "path":
+                if (path != "___" and path in "___") or "__" not in path:
+                    raise ValueError("Can't routing to this endpoint.")
+
             if arg.arg_in == "path":
                 pp += 1
 
@@ -463,7 +473,7 @@ class EPManager:
 
                 cursor = cursor[part]
 
-                if part == "__":
+                if part == "__" or part == "___":
                     qt_paths += 1
             paths = 0
 
@@ -492,10 +502,15 @@ class EPManager:
         slt = path.split("/")
         args = []
 
-        for part in slt:
+        for i, part in enumerate(slt):
             if part in cursor:
                 cursor = cursor[part]
                 continue
+
+            if "___" in cursor:
+                args += "/".join(slt[i:])
+                cursor = cursor["___"]
+                break
 
             if "__" in cursor:
                 args.append(part)
