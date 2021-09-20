@@ -33,7 +33,7 @@ class Cause(enum.Enum):
     INVALID_FIELD_UNK = [400, "INVALID_FIELD", "Invalid field has found."]
     ERROR_OCCURRED = [500, "ERROR_OCCURRED", "An error has occurred."]
 
-    def __getitem__(self, index) -> list:
+    def __getitem__(self, index):
         return self.value[index]
 
 
