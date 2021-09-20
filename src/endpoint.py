@@ -25,6 +25,18 @@ class Method(Enum):
     def values() -> list:
         return [ev.value for ev in Method]
 
+    def __radd__(self, other):
+        return str(self) + "|" + str(other)
+
+    def __and__(self, other):
+        return str(self) + "|" + str(other)
+
+    def __or__(self, other):
+        return str(self) + "|" + str(other)
+
+    def __str__(self):
+        return self.value
+
 
 class Document:
     def __init__(self,
