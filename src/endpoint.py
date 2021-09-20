@@ -507,7 +507,8 @@ class EPManager:
     def reload(self):
         self.signals.clear()
         self.index_tree.clear()
-        for source in self.known_source:
+        for source in list(self.known_source):
+            self.known_source.remove(source)
             self.load(source)
 
 
