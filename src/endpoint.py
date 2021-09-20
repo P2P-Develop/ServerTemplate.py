@@ -184,7 +184,7 @@ class Argument(Documented):
             if cast:
                 param_dict[name] = bool(value)
         elif typ == "other":
-            return "OK"
+            return 0
         else:
             try:
                 if "int" in self.type or self.type == "number":
