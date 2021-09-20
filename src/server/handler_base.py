@@ -129,7 +129,8 @@ class CachedHeader(AbstractHandlerBase):
     def end_header(self) -> None:
         if not hasattr(self, "_response_cache"):
             self._response_cache = []
-        self._response_cache.append(b"\r\n")
+        if len(self._response_cache) > 1:
+            self._response_cache.append(b"\r\n")
         self.flush_header()
 
     def send_response(self, code: int, message: str = None, server_version: str = "HTTP/1.1") -> None:
