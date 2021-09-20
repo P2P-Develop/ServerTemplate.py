@@ -62,8 +62,8 @@ You need to setup ServerTemplate.py.
       │   └── ___.py
       ├── video
       │   └── __
-      │    ├── watch.py
-      │    └── info.py
+      │       ├── watch.py
+      │       └── info.py
       └── example.py
     ```
 
