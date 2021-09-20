@@ -71,7 +71,7 @@ def http(method: str, require_auth: bool = True, args: tuple = (), docs: Optiona
 
         for arg in arg3:
             if arg.arg_in == "path" and "__" not in path:
-                raise ValueError("Some args have a path specified, but the path does not have __.")
+                raise ValueError("Can't routing to this endpoint.")
             if arg.arg_in == "path":
                 pp += 1
 
