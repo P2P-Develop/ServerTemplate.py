@@ -249,14 +249,17 @@ def convert_annotation(obj):
 
         print("Converting responses...")
         for response in doc.responses:
+            if response.docs is None:
+                continue
+
+            doc = response.docs
+
             d = doc_obj[method][response.code] = {
-                "about": response.about
+                "about": doc.title
             }
 
             if doc.example is not None:
                 d["example"] = doc.example
-            if response.example is not None:
-                d["example"] = response.example
 
         args = []
 
