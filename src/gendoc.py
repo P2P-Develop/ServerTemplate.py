@@ -47,7 +47,7 @@ def generate_html(obj: dict):
     print("Generating docs html...")
     rz = json.dumps(obj)
     with open("docs/docs.html", "w", encoding="utf-8") as w:
-        with open("resources/swagger.templatr.html", "r", encoding="utf-8") as j:
+        with open("resources/swagger.template.html", "r", encoding="utf-8") as j:
             w.write(j.read().replace("\"\"", rz).replace("%%NAME%%", obj["info"]["title"]))
 
 
