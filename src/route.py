@@ -3,6 +3,9 @@ import json
 from server.handler_base import AbstractHandlerBase
 
 
+# This code is deprecated in new futures.
+
+
 def encode(amfs: any) -> str:
     return json.JSONEncoder().encode(amfs)
 
