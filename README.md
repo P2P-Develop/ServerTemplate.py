@@ -53,15 +53,25 @@ You need to setup ServerTemplate.py.
       /
       ├── _.py <- this is index file.
       ├── api
-      │   ├── add-user.py
-      │   └── get-users.py
+      │   ├── user.py
+      │   └── post.py
       ├── articles
-      │   └── 2021-08-25
-      │       └── _.py
+      │   ├── a.py
+      │   └── __.py
+      ├── download
+      │   └── ___.py
+      ├── video
+      │   └── __
+      │    ├── watch.py
+      │    └── info.py
       └── example.py
     ```
 
-    In this example, you can make a route of /api/add-user.
+    In this example, you can make a route of `/api/user`.  
+    Also, you can make a route of `/download/path/to/foo.bar` and you can make a route of `/articles/foobar`.  
+    `__` supports only one path component and can be used multiple times, but cannot contain `/`.
+    You can also use `__` for directories.  
+    `___.py` cannot be used more than once, but it can contain `/`. The directory where `___.py` is placed cannot contain any other files.
   </details>
 - RESTful api support
   <details>
@@ -76,6 +86,10 @@ You need to setup ServerTemplate.py.
   @http("PUT|DELETE", args=(Argument("user_id", "string", "path"), 
                             Argument("user_name", "string", "query"),
                             Argument("data", "int", "body")))
+  def handle(handler, params):
+      pass
+  
+  @http(Method.PATCH & Method.HEAD, args=(Argument("user_id", "string", "path"))
   def handle(handler, params):
       pass
   ```
