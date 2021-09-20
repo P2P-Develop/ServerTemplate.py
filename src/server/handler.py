@@ -204,7 +204,7 @@ class Handler(ServerHandler):
 
             return True
 
-        auth = self.request.headers["Authorization"].split(" ")
+        auth = str(self.request.headers["Authorization"]).split(" ")
 
         if len(auth) != 2:
             route.post_error(self, route.Cause.AUTH_REQUIRED)
