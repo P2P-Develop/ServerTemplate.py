@@ -54,7 +54,13 @@ class Document:
 
 def http(method: str, require_auth: bool = True, args: tuple = (), docs: Optional[Document] = None):
     def _context(handler):
-        path = os.path.relpath(handler.__globals__["__file__"], "src/server/handler_root")
+        path = None
+        file = handler.__globals__["__file__"]
+        for base in loader.known_source:
+            if os.path.abspath(file).startswith(os.path.abspath(base)):
+                path = os.path.relpath(file, os.path.relpath(base))
+        if path is None:
+            raise FileNotFoundError("Base path not found.")
         path = path.replace(os.sep, "/")
         pp = 0
 
@@ -381,10 +387,13 @@ class EPManager:
         loader = self
 
     def load(self, root: str) -> None:
+        if root in self.known_source:
+            raise ValueError("Endpoint base already loaded.")
+        else:
+            self.known_source.append(root)
+
         for file in pathlib.Path(root).glob("**/*.py"):
             self.load_single(str(file), False)
-        if root not in self.known_source:
-            self.known_source.append(root)
         self.make_cache()
 
     def load_single(self, path: str, build_cache: bool = True) -> bool:
