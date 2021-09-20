@@ -52,7 +52,7 @@ class Document:
         self.format = format_type
 
 
-def http(method: str, require_auth: bool = True, args: tuple = (), docs: Optional[Document] = None):
+def http(method: str, require_auth: bool = True, args: Union[tuple, list, Argument] = (), docs: Optional[Document] = None):
     def _context(handler):
         path = None
         file = handler.__globals__["__file__"]
@@ -64,7 +64,7 @@ def http(method: str, require_auth: bool = True, args: tuple = (), docs: Optiona
         path = path.replace(os.sep, "/")
         pp = 0
 
-        if not isinstance(args, tuple) and not isinstance(args, list):
+        if isinstance(args, Argument):
             arg3 = (args,)
         else:
             arg3 = args
