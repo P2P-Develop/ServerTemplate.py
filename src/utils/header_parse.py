@@ -132,8 +132,8 @@ class HeaderSet:
         return len(self._headers)
 
     def __iter__(self):
-        for header in self._headers:
-            if isinstance(header, (MultiValueHeader, DecoratedHeader)):
+        for header in self._headers.values():
+            if isinstance(header, MultiValueHeader) or isinstance(header, DecoratedHeader):
                 yield header.name, header.raw_value
             else:
                 yield header.name, header.value

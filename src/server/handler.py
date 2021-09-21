@@ -160,8 +160,8 @@ class Handler(ServerHandler):
                 self.call_handler(path.path, {}, queries)
             else:
                 if "Content-Type" in self.request.headers:
-                    content_len = int(self.request.headers.get("content-length"))
-                    content_type = self.request.headers["Content-Type"]
+                    content_len = int(self.request.headers.get("content-length").value)
+                    content_type = str(self.request.headers["Content-Type"])
 
                     if content_type in ["application/json", "text/json", "application/x-json"]:
                         req_body = self.rfile.read(content_len).decode("utf-8")
