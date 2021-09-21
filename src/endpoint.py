@@ -145,6 +145,9 @@ class Documented:
         self.docs = document
 
 
+class Undefined: pass
+
+
 class Argument(Documented):
     def __init__(self,
                  name: str,
@@ -158,7 +161,8 @@ class Argument(Documented):
                  doc: Optional[Document] = None,
                  format_type: Optional[str] = None,
                  ignore_check_expect100: bool = False,
-                 enum: Union[tuple, list] = ()):
+                 enum: Union[tuple, list] = (),
+                 default: Optional[any] = Undefined):
         super().__init__(doc)
         if arg_type not in ["str", "string", "bool", "boolean", "number", "int", "long",
                             "double", "decimal", "float", "other"]:
@@ -176,6 +180,7 @@ class Argument(Documented):
         self.document = doc
         self.format = format_type
         self.ignore_check_expect100 = ignore_check_expect100
+        self.default = default
 
     def norm_type(self, val: Optional[any] = None) -> Optional[any]:
         if "str" in self.type:
@@ -198,10 +203,14 @@ class Argument(Documented):
         min_val = self.min
         max_val = self.max
 
-        if name not in param_dict and self.required:
-            if self.ignore_check_expect100:
+        if name not in param_dict:
+            if self.default is not Undefined:
+                param_dict[name] = self.norm_type(self.default)
                 return 0
-            return -1
+            if self.required:
+                if self.ignore_check_expect100:
+                    return 0
+                return -1
 
         value = param_dict[name]
 
