@@ -517,7 +517,7 @@ class EPManager:
                 continue
 
             if "___" in cursor:
-                args += "/".join(slt[i:])
+                args.append("/".join(slt[i:]))
                 cursor = cursor["___"]
                 break
 
