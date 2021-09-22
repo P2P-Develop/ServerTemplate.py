@@ -83,7 +83,7 @@ class Handler(ServerHandler):
         try:
             handled = ep.handle(self, params, queries, path_param)
         except Exception:
-            get_stack_trace("handler_root", *sys.exc_info())
+            self.logger.warn(get_log_name(), get_stack_trace("handler_root", *sys.exc_info()))
             return False
 
         if handled is None:
@@ -175,7 +175,7 @@ class Handler(ServerHandler):
 
                     elif content_type.startswith("multipart/form-data"):
                         f = cgi.FieldStorage(fp=self.rfile,
-                                             headers=self.request.headers,
+                                             headers=dict(self.request.headers),
                                              environ={
                                                  "REQUEST_METHOD": "POST",
                                                  "CONTENT_TYPE": content_type,
@@ -186,16 +186,14 @@ class Handler(ServerHandler):
                             args[fs] = f.getvalue(fs)
 
                     else:
-                        route.quick_invalid(self, "Content-Type header", "valid header")
-                        return
-                        # args = self.rfile.read(content_len).decode("utf-8")
+                        args = {}
 
                     self.call_handler(path.path, args, queries)
                 else:
                     route.post_error(self, route.Cause.MISSING_FIELD, "Content-Type header is required.")
                     return
         except Exception:
-            get_stack_trace("server", *sys.exc_info())
+            self.logger.warn(get_log_name(), get_stack_trace("server", *sys.exc_info()))
 
     def do_auth(self):
         self.request: HTTPRequest
