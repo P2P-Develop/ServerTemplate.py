@@ -23,6 +23,7 @@ class Handler(ServerHandler):
         self.instance = server.instance
         self.config = self.instance.config
         self.request = None
+        self.verbose = self.instance.verbose
         super().__init__(request, client_address, server)
 
     def handle_request(self):
@@ -190,8 +191,7 @@ class Handler(ServerHandler):
 
                     self.call_handler(path.path, args, queries)
                 else:
-                    route.post_error(self, route.Cause.MISSING_FIELD, "Content-Type header is required.")
-                    return
+                    self.call_handler(path.path, {}, queries)
         except Exception:
             self.logger.warn(get_log_name(), get_stack_trace("server", *sys.exc_info()))
 

@@ -1,10 +1,11 @@
 from socket import socket
 from typing import Optional, BinaryIO
 from socketserver import StreamRequestHandler
-from sys import exc_info
-
-from utils import stacktrace
+from utils.stacktrace import get_stack_trace
+from utils.logging import get_log_name
 from utils.header_parse import HeaderSet
+import sys
+
 
 responses = {
     100: "Continue",
@@ -248,7 +249,7 @@ class HTTPParser:
         except Exception as e:
             if type(e) is ParseException:
                 raise e
-            stacktrace.get_stack_trace("server", *exc_info())
+            print(get_log_name(), get_stack_trace("server", *sys.exc_info()))
             return
 
     def parse(self) -> Optional[HTTPRequest]:
