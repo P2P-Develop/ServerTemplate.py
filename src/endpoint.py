@@ -186,7 +186,7 @@ class Argument(Documented):
         if "str" in self.type:
             return "string" if val is None else str(val)
         elif "bool" in self.type:
-            return "bool" if val is None else bool(val)
+            return "boolean" if val is None else bool(val)
         elif self.type is "number" or "int" in self.type:
             return "integer" if val is None else int(val)
         elif self.type is "long":

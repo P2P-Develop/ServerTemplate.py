@@ -56,7 +56,7 @@ def save(obj: dict):
     if not os.path.exists("docs/"):
         os.mkdir("docs")
     with open("docs/swagger.yml", "w", encoding="utf-8") as w:
-        w.write(yaml.dump(obj))
+        yaml.safe_dump(obj, w)
     return obj
 
 
@@ -280,7 +280,7 @@ def convert_annotation(obj):
                 "type": norm_type
             }
 
-            if arg.must_be is not None:
+            if arg.must_be is not None and len(arg.must_be):
                 st["enum"] = arg.must_be
 
             arg_doc = arg.document
