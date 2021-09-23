@@ -74,8 +74,8 @@ def http(method: str,
         if "___" in os.path.normpath(file).split(os.path.sep):
             raise IsADirectoryError("Path-argument like directory found.")
         ep_dir = os.path.dirname(file)
-        if file.endswith("___.py") and\
-                len([name for name in os.listdir(ep_dir) if os.path.isfile(ep_dir + "/" + name)]) >= 2:
+        if file.endswith("___.py") and \
+            len([name for name in os.listdir(ep_dir) if os.path.isfile(ep_dir + "/" + name)]) >= 2:
             raise FileExistsError("Endpoint conflict")
 
         for base in loader.known_source:
@@ -211,6 +211,8 @@ class Argument(Documented):
                 if self.ignore_check_expect100:
                     return 0
                 return -1
+            else:
+                return 0
 
         value = param_dict[name]
 
@@ -304,6 +306,7 @@ class EndPoint(Documented):
 
             if code == -1:
                 missing.append(arg.name)
+                continue
             elif code == 1:
                 if "bool" in arg.type:
                     quick_invalid(handler, arg.name, "[" + ", ".join(("true", "false") + arg.must_be) + "]")
