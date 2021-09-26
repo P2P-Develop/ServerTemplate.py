@@ -175,21 +175,22 @@ class ServerHandler(CachedHeader, AbstractHandlerBase):
         try:
             req = HTTPParser(self, self.rfile).parse()
 
-            if not req:
+            if req is None:
                 return
 
-            if req.protocol >= "HTTP/1.1":
+            if req.protocol is not None and req.protocol >= "HTTP/1.1":
                 self.multiple = True
 
-            if "Connection" in req.headers:
-                if req.headers["Connection"] == "keep-alive":
-                    self.multiple = True
-                elif req.headers["Connection"] == "close":
-                    self.multiple = False
+            if req.headers is not None:
+                if "Connection" in req.headers:
+                    if req.headers["Connection"] == "keep-alive":
+                        self.multiple = True
+                    elif req.headers["Connection"] == "close":
+                        self.multiple = False
 
-            if "Expect" in req.headers:
-                if req.headers["Expect"] == "100-continue":
-                    req.expect_100 = True
+                if "Expect" in req.headers:
+                    if req.headers["Expect"] == "100-continue":
+                        req.expect_100 = True
 
             self.request = req
 
@@ -291,7 +292,7 @@ class HTTPParser:
         if len(kv) != 2:
             raise ParseException("MALFORMED_HEADER")
 
-        self._response.headers.add(*kv)
+        self._response.headers.add(*kv) if self._response.headers is not None else None
 
     def _first_line(self, byte: bytes) -> None:
         line = decode(byte)

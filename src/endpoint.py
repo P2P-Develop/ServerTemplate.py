@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Any
+from typing import Optional, Any, Literal
 
 import importlib
 import os
@@ -150,10 +150,15 @@ class Documented:
 class Undefined: pass
 
 
+ArgumentTypes = Literal["str", "string", "bool", "boolean", "number", "int", "long", "double", "decimal", "float", "other"]
+
+
 class Argument(Documented):
+    type: ArgumentTypes
+
     def __init__(self,
                  name: str,
-                 arg_type: str,
+                 arg_type: ArgumentTypes,
                  arg_in: str,
                  required: bool = True,
                  auto_cast: bool = True,
