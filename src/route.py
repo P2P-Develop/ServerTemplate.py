@@ -56,7 +56,7 @@ def validate(handler, fname: str, value: Any, must: str) -> bool:
 
 def missing(handler, fields: dict, require: list) -> bool:
     diff = search_missing(fields, require)
-    if len(diff) is 0:
+    if len(diff) == 0:
         return False
     write(handler, 400, error(Cause.MISSING_FIELD, Cause.MISSING_FIELD[2]
                               .replace("%0", str(len(diff)))

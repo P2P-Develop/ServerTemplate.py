@@ -96,7 +96,7 @@ def b(ex):
     properties = {}
     for zz in ex.items():
         tz = whats_type_of_this_object(zz[1])
-        if tz is "array":
+        if tz == "array":
 
             a_t_field = ""
             for at in zz[1]:
