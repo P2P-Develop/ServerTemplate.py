@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 import cgi
 import json
 import mimetypes
@@ -16,6 +20,7 @@ no_req_log = False
 
 
 class Handler(ServerHandler):
+    request: Optional[HTTPRequest]
 
     def __init__(self, request, client_address, server):
         self.logger = server.logger
@@ -76,7 +81,10 @@ class Handler(ServerHandler):
     def dynamic_handle(self, path, params, queries):
         path_param = {}
 
-        ep = endpoint.loader.get_endpoint(self.request.method, path, path_param)
+        ep: Optional[endpoint.EndPoint] = None
+
+        if self.request is not None:
+            ep = endpoint.loader.get_endpoint(self.request.method, path, path_param)
 
         if ep is None:
             return False
@@ -128,7 +136,10 @@ class Handler(ServerHandler):
             return
 
         default = self.config["system"]["request"]["default_content_type"]
-        accept = self.request.headers["Accept"] if "Accept" in self.request.headers else ""
+        accept = ""
+
+        if self.request is not None:
+            self.request.headers["Accept"] if "Accept" in self.request.headers else ""
 
         if content_types is not None:
             if isinstance(content_types, str):
@@ -149,10 +160,13 @@ class Handler(ServerHandler):
         if not no_req_log:
             self.logger.info(get_log_name(), '%s -- %s %s -- "%s %s"' %
                              (kwargs["client"], kwargs["code"], "" if kwargs["message"] is None else kwargs["message"],
-                              self.request.method, kwargs["path"]))
+                              self.request.method if self.request is not None else "<no method>", kwargs["path"]))
 
     def handle_switch(self):
         try:
+            if self.request is None:
+                raise TypeError("Request instance is None")
+
             path = parse.urlparse(self.request.path)
             queries = dict(parse.parse_qsl(path.query))
 
@@ -196,8 +210,7 @@ class Handler(ServerHandler):
             self.logger.warn(get_log_name(), get_stack_trace("server", *sys.exc_info()))
 
     def do_auth(self):
-        self.request: HTTPRequest
-        if "Authorization" not in self.request.headers:
+        if self.request is not None and "Authorization" not in self.request.headers:
             route.post_error(self, route.Cause.AUTH_REQUIRED)
 
             return True

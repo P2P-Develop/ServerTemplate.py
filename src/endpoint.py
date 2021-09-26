@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Union, Optional
+
+from typing import Optional, Any
+
 import importlib
 import os
 import pathlib
@@ -44,8 +46,8 @@ class Document:
                  summary: str = None,
                  # description: str = "Description",
                  # desc: str = "Description",
-                 types: Union[list, str] = "application/octet-stream",
-                 example: Union[dict, str, int, float, bool, any] = None,
+                 types: list | str = "application/octet-stream",
+                 example: Any = None,
                  security: Optional[dict] = None,
                  responses: Optional[list] = None,
                  tags: Optional[list] = None,
@@ -66,10 +68,10 @@ class Document:
 
 def http(method: str,
          require_auth: bool = True,
-         args: Union[tuple, list, Argument] = (),
+         args: tuple | list | Argument = (),
          docs: Optional[Document] = None):
     def _context(handler):
-        path = None
+        path: Optional[str] = None
         file = handler.__globals__["__file__"]
         if "___" in os.path.normpath(file).split(os.path.sep):
             raise IsADirectoryError("Path-argument like directory found.")
@@ -157,12 +159,12 @@ class Argument(Documented):
                  auto_cast: bool = True,
                  minimum: int = -1,
                  maximum: int = -1,
-                 must_be: Union[tuple, list] = (),
+                 must_be: tuple | list = (),
                  doc: Optional[Document] = None,
                  format_type: Optional[str] = None,
                  ignore_check_expect100: bool = False,
-                 enum: Union[tuple, list] = (),
-                 default: Optional[any] = Undefined):
+                 enum: tuple | list = (),
+                 default: Any = Undefined):
         super().__init__(doc)
         if arg_type not in ["str", "string", "bool", "boolean", "number", "int", "long",
                             "double", "decimal", "float", "other"]:
@@ -182,7 +184,7 @@ class Argument(Documented):
         self.ignore_check_expect100 = ignore_check_expect100
         self.default = default
 
-    def norm_type(self, val: Optional[any] = None) -> Optional[any]:
+    def norm_type(self, val: Any = None) -> Any:
         if "str" in self.type:
             return "string" if val is None else str(val)
         elif "bool" in self.type:
@@ -230,7 +232,7 @@ class Argument(Documented):
                 param_dict[name] = str(value)
 
         elif "bool" in typ:
-            if value not in ("true", "false") + self.must_be:
+            if value not in ("true", "false") + tuple(self.must_be):
                 return 1
 
             if cast:
@@ -280,7 +282,7 @@ class EndPoint(Documented):
         self.args = () if args is None else args
         self.path_arg = path_arg
 
-    def handle(self, handler, params: dict, queries: dict, path_param: dict) -> Union[Response, any]:
+    def handle(self, handler, params: dict, queries: dict, path_param: dict) -> Any:
         if self.auth_required and handler.do_auth():
             return
 
@@ -309,7 +311,7 @@ class EndPoint(Documented):
                 continue
             elif code == 1:
                 if "bool" in arg.type:
-                    quick_invalid(handler, arg.name, "[" + ", ".join(("true", "false") + arg.must_be) + "]")
+                    quick_invalid(handler, arg.name, "[" + ", ".join(("true", "false") + tuple(arg.must_be)) + "]")
                     return False
                 else:
                     quick_invalid(handler, arg.name, "[" + ", ".join(arg.must_be) + "]")
@@ -350,9 +352,9 @@ class EndPoint(Documented):
 class Response(Documented):
     def __init__(self,
                  code: int = 0,
-                 body: Optional[any] = None,
+                 body: Any = None,
                  raw_body: bool = False,
-                 content_type: Union[str, list] = None,
+                 content_type: str | list = None,
                  headers: Optional[dict] = None,
                  doc: Optional[Document] = None):
         super().__init__(doc)
@@ -367,7 +369,7 @@ class Response(Documented):
         self.headers[name] = value
         return self
 
-    def body(self, value: any, raw: bool = False) -> Response:
+    def body(self, value: Any, raw: bool = False) -> Response:
         self.body_data = value
         self.raw = raw
         return self
@@ -390,13 +392,13 @@ class ErrorResponse(Response):
                  cause: Optional[Cause] = None,
                  code: int = 0,
                  headers: Optional[dict] = None,
-                 body: Optional[any] = None,
-                 content_type: Optional[Union[str, list]] = None,
+                 body: Any = None,
+                 content_type: Optional[str | list] = None,
                  doc: Optional[Document] = None):
         if cause is not None:
-            super().__init__(cause[0], headers, cause[2], content_type, doc)
+            super().__init__(cause[0], headers, cause[2], content_type, headers, doc)
         else:
-            super().__init__(code, headers, body, content_type, doc)
+            super().__init__(code, body, False, content_type, headers, doc)
 
         self.cause = cause
 
@@ -415,6 +417,8 @@ global loader
 
 
 class EPManager:
+    known_source: list[str]
+
     def __init__(self):
         global loader
         self.signals = []
@@ -501,7 +505,7 @@ class EPManager:
             cursor[method] = EndPoint(method, rt, path, function, auth, args, bool(paths), docs)
             self.count += 1
 
-    def get_endpoint(self, method: str, path: str, params: Optional[dict] = None) -> Optional[EndPoint]:
+    def get_endpoint(self, method: str, path: str, params: dict = {}) -> Optional[EndPoint]:
 
         cursor = self.index_tree
 

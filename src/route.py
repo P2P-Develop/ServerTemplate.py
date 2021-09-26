@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any
+
 import enum
 import json
 from server.handler_base import AbstractHandlerBase
@@ -6,7 +10,7 @@ from server.handler_base import AbstractHandlerBase
 # This code is deprecated in new futures.
 
 
-def encode(amfs: any) -> str:
+def encode(amfs: Any) -> str:
     return json.JSONEncoder().encode(amfs)
 
 
@@ -40,7 +44,7 @@ class Cause(enum.Enum):
         return self.value[index]
 
 
-def validate(handler, fname: str, value: any, must: str) -> bool:
+def validate(handler, fname: str, value: Any, must: str) -> bool:
     if str(value) in must:
         return False
 
@@ -60,7 +64,7 @@ def missing(handler, fields: dict, require: list) -> bool:
     return True
 
 
-def success(handler, code: int, obj: any):
+def success(handler, code: int, obj: Any):
     write(handler, code, encode({
         "success": True,
         "result": obj
