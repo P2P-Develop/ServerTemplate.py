@@ -1,24 +1,21 @@
-import hashlib
 import os
-import secrets
-import string
+
+from secrets import token_bytes
+from blake3 import blake3
 
 
 class Token:
-    def __init__(self, file, salt=b"P2P-Develop"):
+    def __init__(self, file):
         self.file = file
         self.token = None
-        self.salt = salt
 
-    def load(self):
+    @property
+    def loaded(self):
         if not os.path.exists(self.file):
             return False
         with open(self.file, "rb") as r:
             self.token = r.read().decode("utf-8")
         return True
-
-    def get(self):
-        return self.token
 
     def save(self, token):
         with open(self.file, "w") as r:
@@ -28,16 +25,18 @@ class Token:
         if self.token is not None:
             return self.token
 
-        if os.path.exists(self.file) and self.load():
+        if os.path.exists(self.file) and self.loaded:
             return self.token
 
-        token = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
-        hash_token = hashlib.blake2b(token.encode("utf-8"), salt=self.salt).hexdigest()
+        token = token_bytes(32)
+
+        hash_token = blake3(token).hexdigest()
 
         self.save(hash_token)
+
         self.token = hash_token
 
-        return token
+        return hash_token
 
     def validate(self, token):
-        return self.token == hashlib.blake2b(token.encode("utf-8"), salt=self.salt).hexdigest()
+        return self.token == blake3(token).hexdigest()

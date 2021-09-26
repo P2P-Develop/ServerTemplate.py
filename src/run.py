@@ -65,7 +65,7 @@ class Main:
         handler_base.default_version = config["system"]["request"]["default_protocol"]
 
         token = Token("token.sig")
-        if not token.load():
+        if not token.loaded:
             self.log.warn("main", "Token not found. ")
             self.log.info("auth", "Generating token...")
             self.log.info("auth", "Token generated: " + token.generate())
