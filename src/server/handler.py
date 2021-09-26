@@ -83,7 +83,7 @@ class Handler(ServerHandler):
 
         ep: Optional[endpoint.EndPoint] = None
 
-        if self.request is not None:
+        if self.request is not None and self.request.method is not None:
             ep = endpoint.loader.get_endpoint(self.request.method, path, path_param)
 
         if ep is None:
@@ -139,7 +139,7 @@ class Handler(ServerHandler):
         accept = ""
 
         if self.request is not None:
-            self.request.headers["Accept"] if "Accept" in self.request.headers else ""
+            self.request.headers["Accept"] if self.request.headers is not None and "Accept" in self.request.headers else ""
 
         if content_types is not None:
             if isinstance(content_types, str):
@@ -167,6 +167,9 @@ class Handler(ServerHandler):
             if self.request is None:
                 raise TypeError("Request instance is None")
 
+            if self.request.path is None:
+                raise TypeError("Request path is None")
+
             path = parse.urlparse(self.request.path)
             queries = dict(parse.parse_qsl(path.query))
 
@@ -174,7 +177,7 @@ class Handler(ServerHandler):
 
                 self.call_handler(path.path, {}, queries)
             else:
-                if "Content-Type" in self.request.headers:
+                if self.request.headers is not None and "Content-Type" in self.request.headers:
                     content_len = int(self.request.headers.get("content-length").value)
                     content_type = str(self.request.headers["Content-Type"])
 
@@ -210,7 +213,7 @@ class Handler(ServerHandler):
             self.logger.warn(get_log_name(), get_stack_trace("server", *sys.exc_info()))
 
     def do_auth(self):
-        if self.request is not None and "Authorization" not in self.request.headers:
+        if "Authorization" not in self.request.headers:
             route.post_error(self, route.Cause.AUTH_REQUIRED)
 
             return True
