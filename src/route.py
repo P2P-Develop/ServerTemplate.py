@@ -35,6 +35,13 @@ class Cause(enum.Enum):
                      "Invalid field: Field %0 is must be %1."]
     INVALID_FIELD_UNK = [400, "INVALID_FIELD", "Invalid field has found."]
     ERROR_OCCURRED = [500, "ERROR_OCCURRED", "An error has occurred."]
+    MALFORMED = [400, "MALFORMED_REQUEST", "Request malformed."]
+    PROCESSING = [503, "PROCESSING", "Processing request."]
+    SIZE_OVER = [413, "PAYLOAD_TOO_LARGE", "Payload too large."]
+    INTERNAL_ERR = [500, "INTERNAL_ERROR", "Internal server error has occurred."]
+    MISMATCH = [506, "MISMATCH", "Server files mismatch."]
+    NOT_FOUND = [404, "NOT_FOUND", "Resource not found."]
+    ALREADY_EXISTS = [409, "ALREADY_EXISTS", "Resource already exists."]
 
     def __getitem__(self, index):
         return self.value[index]
@@ -52,7 +59,7 @@ def validate(handler, fname: str, value: any, must: str) -> bool:
 
 def missing(handler, fields: dict, require: list) -> bool:
     diff = search_missing(fields, require)
-    if len(diff) is 0:
+    if len(diff) == 0:
         return False
     write(handler, 400, error(Cause.MISSING_FIELD, Cause.MISSING_FIELD[2]
                               .replace("%0", str(len(diff)))

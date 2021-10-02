@@ -247,7 +247,7 @@ class HTTPParser:
                 raise ParseException("URI_TOO_LONG")
             return read
         except Exception as e:
-            if type(e) is ParseException:
+            if isinstance(e, ParseException):
                 raise e
             print(get_log_name(), get_stack_trace("server", *sys.exc_info()))
             return
