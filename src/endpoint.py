@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Optional, Any, Literal
+from typing import Optional, Any
+from typing_extensions import Literal
+
 
 import importlib
 import os
@@ -150,7 +152,8 @@ class Documented:
 class Undefined: pass
 
 
-ArgumentTypes = Literal["str", "string", "bool", "boolean", "number", "int", "long", "double", "decimal", "float", "other"]
+ArgumentTypes = Literal["str", "string", "bool", "boolean", "number", "int",
+                        "long", "double", "decimal", "float", "other"]
 
 
 class Argument(Documented):
