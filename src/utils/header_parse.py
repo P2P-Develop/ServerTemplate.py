@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 def _(n):
     return n.rstrip().lstrip()
 

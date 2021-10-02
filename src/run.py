@@ -68,7 +68,7 @@ class Main:
         if not token.loaded:
             self.log.warn("main", "Token not found. ")
             self.log.info("auth", "Generating token...")
-            self.log.info("auth", "Token generated: " + token.generate())
+            self.log.info("auth", "Token generated: %s" % token.generate())
             self.log.warn(
                 "auth", "Make sure to copy this token now. You won't be able to see it again.")
 

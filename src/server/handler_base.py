@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Any
+from abc import ABC, abstractmethod
+
 from socket import socket
 from typing import Optional, BinaryIO
 from socketserver import StreamRequestHandler
@@ -81,34 +86,43 @@ read_limit = 65536
 header_limit = 100
 
 
-class AbstractHandlerBase(StreamRequestHandler):
+class AbstractHandlerBase(ABC, StreamRequestHandler):
     def __init__(self, request, client_address, server):
         super().__init__(request, client_address, server)
 
+    @abstractmethod
     def handle(self) -> None:
         pass
 
+    @abstractmethod
     def handle_parse_error(self, cause: str) -> None:
         pass
 
+    @abstractmethod
     def handle_request(self) -> None:
         pass
 
-    def send_header(self, name: str, value: any, server_version: str) -> None:
+    @abstractmethod
+    def send_header(self, name: str, value: Any, server_version: str) -> None:
         pass
 
+    @abstractmethod
     def flush_header(self) -> None:
         pass
 
+    @abstractmethod
     def end_header(self) -> None:
         pass
 
+    @abstractmethod
     def send_response(self, code: int, message: str, server_version: str) -> None:
         pass
 
+    @abstractmethod
     def send_body(self, content_type: str, raw_body: bytes) -> None:
         pass
 
+    @abstractmethod
     def log_request(self, **kwargs) -> None:
         pass
 
@@ -117,7 +131,7 @@ class CachedHeader(AbstractHandlerBase):
     def __init__(self):
         self._response_cache = []
 
-    def send_header(self, name: str, value: any, server_version: str = "HTTP/1.1") -> None:
+    def send_header(self, name: str, value: Any, server_version: str = "HTTP/1.1") -> None:
         if server_version != "HTTP/0.9":
             self._response_cache.append(f"{name}: {str(value)}\r\n".encode("iso-8859-1"))
 
@@ -161,21 +175,22 @@ class ServerHandler(CachedHeader, AbstractHandlerBase):
         try:
             req = HTTPParser(self, self.rfile).parse()
 
-            if not req:
+            if req is None:
                 return
 
-            if req.protocol >= "HTTP/1.1":
+            if req.protocol is not None and req.protocol >= "HTTP/1.1":
                 self.multiple = True
 
-            if "Connection" in req.headers:
-                if req.headers["Connection"] == "keep-alive":
-                    self.multiple = True
-                elif req.headers["Connection"] == "close":
-                    self.multiple = False
+            if req.headers is not None:
+                if "Connection" in req.headers:
+                    if req.headers["Connection"] == "keep-alive":
+                        self.multiple = True
+                    elif req.headers["Connection"] == "close":
+                        self.multiple = False
 
-            if "Expect" in req.headers:
-                if req.headers["Expect"] == "100-continue":
-                    req.expect_100 = True
+                if "Expect" in req.headers:
+                    if req.headers["Expect"] == "100-continue":
+                        req.expect_100 = True
 
             self.request = req
 
@@ -192,7 +207,7 @@ class ServerHandler(CachedHeader, AbstractHandlerBase):
         except ParseException as e:
             self.handle_parse_error(e.cause)
 
-    def send_header(self, name: str, value: any, server_version: str = "HTTP/1.1"):
+    def send_header(self, name: str, value: Any, server_version: str = "HTTP/1.1"):
         if name == "Connection":
             if value.lower() == "keep-alive":
                 self.multiple = True
@@ -218,9 +233,9 @@ def decode(line: bytes) -> str:
 
 
 class HTTPRequest:
-    def __init__(self, handler, method: str = None, path: str = None, protocol: str = None,
-                 headers: HeaderSet = None, rfile: BinaryIO = None, expect_100: bool = False,
-                 parameters: dict = None):
+    def __init__(self, handler, method: Optional[str] = None, path: Optional[str] = None, protocol: Optional[str] = None,
+                 headers: Optional[HeaderSet] = None, rfile: Optional[BinaryIO] = None, expect_100: bool = False,
+                 parameters: Optional[dict] = None):
         self.handler = handler
         self.method = method
         self.path = path
@@ -277,7 +292,7 @@ class HTTPParser:
         if len(kv) != 2:
             raise ParseException("MALFORMED_HEADER")
 
-        self._response.headers.add(*kv)
+        self._response.headers.add(*kv) if self._response.headers is not None else None
 
     def _first_line(self, byte: bytes) -> None:
         line = decode(byte)
