@@ -186,10 +186,10 @@ class Argument(Documented):
         if "str" in self.type:
             return "string" if val is None else str(val)
         elif "bool" in self.type:
-            return "boolean" if val is None else bool(val)
-        elif self.type is "number" or "int" in self.type:
+            return "bool" if val is None else bool(val)
+        elif self.type == "number" or "int" in self.type:
             return "integer" if val is None else int(val)
-        elif self.type is "long":
+        elif self.type == "long":
             return "integer" if val is None else int(val)
         else:
             return "number" if val is None else float(val)
@@ -204,8 +204,11 @@ class Argument(Documented):
         max_val = self.max
 
         if name not in param_dict:
-            if self.default is not Undefined:
-                param_dict[name] = self.norm_type(self.default)
+            if self.default != Undefined:
+                if cast:
+                    param_dict[name] = self.norm_type(self.default)
+                else:
+                    param_dict[name] = self.default
                 return 0
             if self.required:
                 if self.ignore_check_expect100:
@@ -217,13 +220,13 @@ class Argument(Documented):
         value = param_dict[name]
 
         if "str" in typ:
-            if len(must_be) is not 0 and value not in must_be:
+            if len(must_be) != 0 and value not in must_be:
                 return 1
 
-            if min_val is not -1 and len(value) < min_val:
+            if min_val != -1 and len(value) < min_val:
                 return 3
 
-            if max_val is not -1 and len(value) > max_val:
+            if max_val != -1 and len(value) > max_val:
                 return 4
 
             if cast:
@@ -246,13 +249,13 @@ class Argument(Documented):
             except ValueError:
                 return 2
 
-            if len(must_be) is not 0 and val not in must_be:
+            if len(must_be) != 0 and val not in must_be:
                 return 1
 
-            if min_val is not -1 and val < min_val:
+            if min_val != -1 and val < min_val:
                 return 3
 
-            if max_val is not -1 and val > max_val:
+            if max_val != -1 and val > max_val:
                 return 4
 
             if cast:
@@ -297,10 +300,16 @@ class EndPoint(Documented):
             arg: Argument
             if arg.arg_in == "query":
                 code = arg.validate(queries)
+                if code != -1 and arg.name not in queries:
+                    continue
             elif arg.arg_in == "body":
                 code = arg.validate(params)
+                if code != -1 and arg.name not in params:
+                    continue
             elif arg.arg_in == "path":
                 code = arg.validate(path_param)
+                if code != -1 and arg.name not in path_param:
+                    continue
             else:
                 raise ValueError(f"Validate failed: N:{arg.name} - T:{arg.type} - I:{arg.arg_in}")
 
@@ -339,7 +348,7 @@ class EndPoint(Documented):
                 val = arg.norm_type(path_param[arg.name]) if arg.auto_cast else path_param[arg.name]
                 params[arg.name] = val
 
-        if len(missing) is not 0:
+        if len(missing) != 0:
             write(handler, 400, e(Cause.MISSING_FIELD, Cause.MISSING_FIELD[2]
                                   .replace("%0", str(len(missing)))
                                   .replace("%1", ", ".join(missing))))

@@ -30,15 +30,15 @@ global swagger
 
 def whats_type_of_this_object(obj):
     typ3 = type(obj)
-    if typ3 is dict or typ3 is tuple:
+    if typ3 == dict or typ3 == tuple:
         return "object"
-    elif typ3 is bool:
+    elif typ3 == bool:
         return "boolean"
-    elif typ3 is str:
+    elif typ3 == str:
         return "string"
-    elif typ3 is int:
+    elif typ3 == int:
         return "integer"
-    elif typ3 is list:
+    elif typ3 == list:
         return "array"
     return None
 
@@ -56,7 +56,7 @@ def save(obj: dict):
     if not os.path.exists("docs/"):
         os.mkdir("docs")
     with open("docs/swagger.yml", "w", encoding="utf-8") as w:
-        yaml.safe_dump(obj, w)
+        w.write(yaml.dump(obj))
     return obj
 
 
@@ -94,7 +94,7 @@ def b(ex):
     properties = {}
     for zz in ex.items():
         tz = whats_type_of_this_object(zz[1])
-        if tz is "array":
+        if tz == "array":
 
             a_t_field = ""
             for at in zz[1]:
@@ -280,7 +280,7 @@ def convert_annotation(obj):
                 "type": norm_type
             }
 
-            if arg.must_be is not None and len(arg.must_be):
+            if arg.must_be is not None:
                 st["enum"] = arg.must_be
 
             arg_doc = arg.document
