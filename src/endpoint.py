@@ -528,6 +528,9 @@ class EPManager:
                 cursor = cursor[part]
                 continue
 
+            if "_" in cursor and part == "":
+                break
+
             if "___" in cursor:
                 args.append("/".join(slt[i:]))
                 cursor = cursor["___"]
