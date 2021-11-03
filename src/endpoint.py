@@ -186,7 +186,7 @@ class Argument(Documented):
         if "str" in self.type:
             return "string" if val is None else str(val)
         elif "bool" in self.type:
-            return "bool" if val is None else bool(val)
+            return "bool" if val is None else val.lower() == "true"
         elif self.type == "number" or "int" in self.type:
             return "integer" if val is None else int(val)
         elif self.type == "long":
@@ -233,11 +233,11 @@ class Argument(Documented):
                 param_dict[name] = str(value)
 
         elif "bool" in typ:
-            if value not in ("true", "false") + self.must_be:
+            if value.lower() not in ("true", "false") + self.must_be:
                 return 1
 
             if cast:
-                param_dict[name] = bool(value)
+                param_dict[name] = value.lower() == "true"
         elif typ == "other":
             return 0
         else:
