@@ -4,11 +4,21 @@ system:
   bind:
     # Server listening port.
     port: 25500
+
+  # Request settings
   request:
+    # Maximum bytes in a header line.
     header_readlimit: 65536
+
+    # Default protocol if not specified in the request.
     default_protocol: "HTTP/0.9"
+
+    # Maximum number of headers in a request.
     header_limit: 127
+
+    # Default content type.
     default_content_type: "application/json"
 
+  # Endpoint search directories.
   route_paths:
     - src/server/handler_root/
