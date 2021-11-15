@@ -242,5 +242,5 @@ class Handler(ServerHandler):
         self.send_response(400)
         self.send_header("Connection", "close")
         self.end_header()
-        self.send_body("text/plain", "Request malformed: " + cause)
+        self.send_body("text/plain", ("Parse Error: " + cause).encode("utf-8"))
 
