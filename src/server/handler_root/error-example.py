@@ -13,4 +13,8 @@ def method_chain(count):
     if count < 10:
         method_chain(count + 1)
     else:
-        raise RecursionError("This is an example error.")
+        method_chain_end()
+
+
+def method_chain_end():
+    raise RecursionError("This is an example error.")
