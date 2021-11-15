@@ -19,6 +19,10 @@ system:
     # Default content type.
     default_content_type: "application/json"
 
+    # Include stack trace to response body if an error occurs.
+    # In a production environment, this should be set to false.
+    include_stack_trace: true
+
   # Endpoint search directories.
   route_paths:
     - src/server/handler_root/

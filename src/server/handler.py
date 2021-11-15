@@ -24,6 +24,8 @@ class Handler(ServerHandler):
         self.config = self.instance.config
         self.request = None
         self.verbose = self.instance.verbose
+
+        self.include_stack_trace = self.config["system"]["request"]["include_stack_trace"]  # Error handling
         super().__init__(request, client_address, server)
 
     def handle_request(self):
@@ -84,8 +86,24 @@ class Handler(ServerHandler):
         try:
             handled = ep.handle(self, params, queries, path_param)
         except Exception:
-            self.logger.warn(get_log_name(), get_stack_trace("handler_root", *sys.exc_info()))
-            return False
+
+            stack_trace = get_stack_trace("handler_root", *sys.exc_info())
+
+            self.logger.warn(get_log_name(), stack_trace)
+            self.send_response(500, "Internal Server Error")
+
+            if self.include_stack_trace:
+                stack_trace = stack_trace.encode("utf-8")
+                self.send_header("Content-Type", "text/plain")
+                self.send_header("Content-Length", len(stack_trace))
+                self.send_header("Connection", "close")
+                self.end_header()
+                self.send_body("text/plain", stack_trace)
+            else:
+                self.send_header("Connection", "close")
+                self.end_header()
+
+            return True
 
         if handled is None:
             return True
