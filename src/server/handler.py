@@ -98,7 +98,7 @@ class Handler(ServerHandler):
                 self.send_header("Content-Length", len(stack_trace))
                 self.send_header("Connection", "close")
                 self.end_header()
-                self.send_body("text/plain", stack_trace)
+                self.wfile.write(stack_trace)
             else:
                 self.send_header("Connection", "close")
                 self.end_header()
