@@ -3,8 +3,7 @@ system:
   # Server listening
   bind:
     # Server listening port.
-    # REQUIRED
-    #port: 25500
+    port: 25500
   request:
     header_readlimit: 65536
     default_protocol: "HTTP/0.9"
